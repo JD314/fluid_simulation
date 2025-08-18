@@ -34,6 +34,7 @@ const float2 boundsSize;
 const float2 interactionInputPoint;
 const float interactionInputStrength;
 const float interactionInputRadius;
+const float obstacleEdgeThreshold;
 
 const float2 obstacleSize;
 const float2 obstacleCentre;
@@ -173,13 +174,23 @@ void HandleCollisions(uint particleIndex)
 
 		if (obstacleEdgeDst.x >= 0 && obstacleEdgeDst.y >= 0)
 		{
-			if (obstacleEdgeDst.x < obstacleEdgeDst.y) {
-				pos.x = obstacleHalfSize.x * sign(pos.x - obstaclePos.x) + obstaclePos.x;
-				vel.x *= -1 * collisionDamping;
+			// Check if particle is very close to the obstacle edge (within a small threshold)
+			if (obstacleEdgeDst.x < obstacleEdgeThreshold || obstacleEdgeDst.y < obstacleEdgeThreshold)
+			{
+				// Particle is on the edge - set velocity to 0
+				vel = float2(0, 0);
 			}
-			else {
-				pos.y = obstacleHalfSize.y * sign(pos.y - obstaclePos.y) + obstaclePos.y;
-				vel.y *= -1 * collisionDamping;
+			else
+			{
+				// Normal collision response
+				if (obstacleEdgeDst.x < obstacleEdgeDst.y) {
+					pos.x = obstacleHalfSize.x * sign(pos.x - obstaclePos.x) + obstaclePos.x;
+					vel.x *= -1 * collisionDamping;
+				}
+				else {
+					pos.y = obstacleHalfSize.y * sign(pos.y - obstaclePos.y) + obstaclePos.y;
+					vel.y *= -1 * collisionDamping;
+				}
 			}
 		}
 	}

@@ -11,8 +11,8 @@ public class ObstacleDisplay2D : MonoBehaviour
     public float offsetX = 0.0f;
     public float offsetY = 0.0f;
     
-    [Header("Laberinto")]
-    public bool useLaberinto = true;
+    [Header("Maze")]
+    public bool useMaze = true;
     public int maxObstacles = 100; // Máximo número de obstáculos que puede manejar el shader
     
     private Material material;
@@ -69,7 +69,7 @@ public class ObstacleDisplay2D : MonoBehaviour
         material.SetFloat("_OffsetY", offsetY);
         
         // Initialize obstacle buffer for new system
-        if (useLaberinto)
+        if (useMaze)
         {
             InitializeObstacleBuffer();
         }
@@ -148,13 +148,13 @@ public class ObstacleDisplay2D : MonoBehaviour
         {
             // Check if obstacle should be displayed
             bool shouldDisplay = simulation.displayObstacle && 
-                               (useLaberinto ? simulation.obstacles.Count > 0 : true);
+                               (useMaze ? simulation.obstacles.Count > 0 : true);
             
             meshRenderer.enabled = shouldDisplay;
             
             if (shouldDisplay)
             {
-                if (useLaberinto && simulation.useLaberinto)
+                if (useMaze && simulation.useMaze)
                 {
                     UpdateNewObstacleSystem();
                 }

@@ -32,22 +32,25 @@ public class Simulation2D : MonoBehaviour
     public float viscosityStrength = 0.06f;
     public Vector2 boundsSize;
     
-    [Header("Legacy Obstacle Settings (Deprecated)")]
+    [Header("Interaction Settings")]
+    public float interactionRadius;
+    public float interactionStrength;
+    public float obstacleEdgeThreshold = 0.1f; // Threshold for particles to stick to obstacle edges
+
+    [Header("Legacy Obstacle Settings")]
     public Vector2 obstacleSize;
     public Vector2 obstacleCentre;
     public bool displayObstacle = true;
     
-    [Header("Laberinto")]
+    [Header("Maze")]
     [HideInInspector] public List<ObstacleRectangle> obstacles = new List<ObstacleRectangle>();
-    public bool useLaberinto = true;
+    
     [Header("Obstacle File Settings")]
+    public bool useMaze = true;
     public string obstacleFilePath = "mazes_csv/obstacles.csv";
     public bool loadObstaclesFromFile = true;
     public bool reloadObstaclesOnStart = true;
     
-    [Header("Interaction Settings")]
-    public float interactionRadius;
-    public float interactionStrength;
 
     [Header("References")]
     public ComputeShader compute;
@@ -83,7 +86,7 @@ public class Simulation2D : MonoBehaviour
     void Awake()
     {
         // Cargar obstáculos desde archivo si está habilitado
-        if (useLaberinto && loadObstaclesFromFile)
+        if (useMaze && loadObstaclesFromFile)
         {
             List<ObstacleRectangle> loadedObstacles = ObstacleLoader.LoadObstaclesFromCSV(obstacleFilePath);
             if (loadedObstacles.Count > 0)
@@ -216,6 +219,7 @@ public class Simulation2D : MonoBehaviour
         compute.SetFloat("pressureMultiplier", pressureMultiplier);
         compute.SetFloat("nearPressureMultiplier", nearPressureMultiplier);
         compute.SetFloat("viscosityStrength", viscosityStrength);
+        compute.SetFloat("obstacleEdgeThreshold", obstacleEdgeThreshold);
         // Trabajar aquí de como se hara el obstaculo más complejo
         compute.SetVector("boundsSize", boundsSize);
         
@@ -224,7 +228,7 @@ public class Simulation2D : MonoBehaviour
         compute.SetVector("obstacleCentre", obstacleCentre);
         
         // New obstacle system
-        if (useLaberinto && obstacles.Count > 0)
+        if (useMaze && obstacles.Count > 0)
         {
             // Convert ObstacleRectangle to float4 array for GPU
             float4[] obstacleData = new float4[obstacles.Count];

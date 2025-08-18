@@ -1,10 +1,9 @@
 Shader "Custom/Obstacle2D" {
 	Properties {
 		_Color ("Color", Color) = (1,1,1,1)
-		_Scale ("Scale", Float) = 20.0
 		_ScaleY ("Scale Y", Float) = 1.0
-		_OffsetX ("Offset X", Float) = 0.0
-		_OffsetY ("Offset Y", Float) = 0.0
+		_QuadSize ("Quad Size", Vector) = (1,1,0,0)
+		_ScaleFactor ("Scale Factor", Vector) = (1,1,0,0)
 	}
 	SubShader {
 		Tags { "RenderType"="Transparent" "Queue"="Transparent+100" }
@@ -23,10 +22,9 @@ Shader "Custom/Obstacle2D" {
 			float4 _Color;
 			float2 _ObstacleSize;
 			float2 _ObstacleCentre;
-			float _Scale;
 			float _ScaleY;
-			float _OffsetX;
-			float _OffsetY;
+			float2 _QuadSize;
+			float2 _ScaleFactor;
 			
 			// New obstacle system
 			StructuredBuffer<float4> _Obstacles;
@@ -56,15 +54,14 @@ Shader "Custom/Obstacle2D" {
 				float2 edgeDist = halfSize - abs(worldPos - obstaclePos);
 				return edgeDist.x >= 0 && edgeDist.y >= 0;
 			}
+			
+
 
 			float4 frag (v2f i) : SV_Target {
 				float2 uv = i.uv;
 				
-				// Convert UV to world position
-				float2 worldPos = (uv - 0.5) * _Scale;
-				
-				// Apply offset
-				worldPos += float2(_OffsetX, _OffsetY);
+				// Convert UV to world position using actual quad size
+				float2 worldPos = (uv - 0.5) * _QuadSize;
 				
 				// Check if we're inside any obstacle
 				bool insideObstacle = false;
@@ -77,6 +74,10 @@ Shader "Custom/Obstacle2D" {
 						float4 obstacle = _Obstacles[j];
 						float2 obstaclePos = obstacle.xy;
 						float2 obstacleSize = obstacle.zw;
+						
+						// Apply scale factor to obstacle position and size
+						obstaclePos *= _ScaleFactor;
+						obstacleSize *= _ScaleFactor;
 						
 						// Apply Y scaling to obstacle size
 						obstacleSize.y *= _ScaleY;
@@ -91,19 +92,17 @@ Shader "Custom/Obstacle2D" {
 				else
 				{
 					// Fallback to legacy obstacle system
-					float2 adjustedCentre = _ObstacleCentre + float2(_OffsetX, _OffsetY);
-					float2 scaledSize = _ObstacleSize;
+					float2 scaledSize = _ObstacleSize * _ScaleFactor;
 					scaledSize.y *= _ScaleY;
 					
-					insideObstacle = IsInsideObstacle(worldPos, adjustedCentre, scaledSize);
+					float2 scaledCentre = _ObstacleCentre * _ScaleFactor;
+					insideObstacle = IsInsideObstacle(worldPos, scaledCentre, scaledSize);
 				}
 				
 				if (insideObstacle) {
-					// Inside obstacle - draw white
-					return float4(1, 1, 1, 1);
+					return _Color; // Inside obstacle - draw with configured color
 				} else {
-					// Outside obstacle - transparent
-					return float4(0, 0, 0, 0);
+					return float4(0, 0, 0, 0); // Outside obstacle - transparent
 				}
 			}
 			ENDCG
