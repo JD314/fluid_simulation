@@ -27,6 +27,11 @@ Shader "Custom/Obstacle2D" {
 			float _ScaleY;
 			float _OffsetX;
 			float _OffsetY;
+			
+			// New obstacle system
+			StructuredBuffer<float4> _Obstacles;
+			int _NumObstacles;
+			int _MaxObstacles;
 
 			struct appdata {
 				float4 vertex : POSITION;
@@ -45,26 +50,57 @@ Shader "Custom/Obstacle2D" {
 				return o;
 			}
 
+			bool IsInsideObstacle(float2 worldPos, float2 obstaclePos, float2 obstacleSize)
+			{
+				float2 halfSize = obstacleSize * 0.5;
+				float2 edgeDist = halfSize - abs(worldPos - obstaclePos);
+				return edgeDist.x >= 0 && edgeDist.y >= 0;
+			}
+
 			float4 frag (v2f i) : SV_Target {
 				float2 uv = i.uv;
 				
 				// Convert UV to world position
-				float2 worldPos = (uv - 0.5) * _Scale; // Use adjustable scale
+				float2 worldPos = (uv - 0.5) * _Scale;
 				
-				// Apply offset to obstacle center
-				float2 adjustedCentre = _ObstacleCentre + float2(_OffsetX, _OffsetY);
+				// Apply offset
+				worldPos += float2(_OffsetX, _OffsetY);
 				
-				// Apply Y scaling to obstacle size
-				float2 scaledSize = _ObstacleSize;
-				scaledSize.y *= _ScaleY;
+				// Check if we're inside any obstacle
+				bool insideObstacle = false;
 				
-				// Check if we're inside the obstacle area
-				float2 halfSize = scaledSize * 0.5;
-				float2 edgeDist = halfSize - abs(worldPos - adjustedCentre);
+				// Check new obstacle system first
+				if (_NumObstacles > 0)
+				{
+					for (int j = 0; j < _NumObstacles; j++)
+					{
+						float4 obstacle = _Obstacles[j];
+						float2 obstaclePos = obstacle.xy;
+						float2 obstacleSize = obstacle.zw;
+						
+						// Apply Y scaling to obstacle size
+						obstacleSize.y *= _ScaleY;
+						
+						if (IsInsideObstacle(worldPos, obstaclePos, obstacleSize))
+						{
+							insideObstacle = true;
+							break;
+						}
+					}
+				}
+				else
+				{
+					// Fallback to legacy obstacle system
+					float2 adjustedCentre = _ObstacleCentre + float2(_OffsetX, _OffsetY);
+					float2 scaledSize = _ObstacleSize;
+					scaledSize.y *= _ScaleY;
+					
+					insideObstacle = IsInsideObstacle(worldPos, adjustedCentre, scaledSize);
+				}
 				
-				if (edgeDist.x >= 0 && edgeDist.y >= 0) {
+				if (insideObstacle) {
 					// Inside obstacle - draw white
-					return float4(1, 1, 1, 1); // White
+					return float4(1, 1, 1, 1);
 				} else {
 					// Outside obstacle - transparent
 					return float4(0, 0, 0, 0);

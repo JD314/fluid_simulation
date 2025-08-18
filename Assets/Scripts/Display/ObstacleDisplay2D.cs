@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Collections.Generic;
+using Unity.Mathematics;
 
 public class ObstacleDisplay2D : MonoBehaviour
 {
@@ -9,9 +11,14 @@ public class ObstacleDisplay2D : MonoBehaviour
     public float offsetX = 0.0f;
     public float offsetY = 0.0f;
     
+    [Header("Laberinto")]
+    public bool useLaberinto = true;
+    public int maxObstacles = 100; // Máximo número de obstáculos que puede manejar el shader
+    
     private Material material;
     private MeshRenderer meshRenderer;
     private Simulation2D simulation;
+    private ComputeBuffer obstacleBuffer;
     
     void Awake()
     {
@@ -60,6 +67,24 @@ public class ObstacleDisplay2D : MonoBehaviour
         material.SetFloat("_ScaleY", scaleY);
         material.SetFloat("_OffsetX", offsetX);
         material.SetFloat("_OffsetY", offsetY);
+        
+        // Initialize obstacle buffer for new system
+        if (useLaberinto)
+        {
+            InitializeObstacleBuffer();
+        }
+    }
+    
+    void InitializeObstacleBuffer()
+    {
+        if (obstacleBuffer != null)
+        {
+            obstacleBuffer.Release();
+        }
+        
+        obstacleBuffer = new ComputeBuffer(maxObstacles, sizeof(float) * 4); // float4: pos_x, pos_y, width, height
+        material.SetBuffer("_Obstacles", obstacleBuffer);
+        material.SetInt("_MaxObstacles", maxObstacles);
     }
     
     void SetupQuad()
@@ -122,13 +147,23 @@ public class ObstacleDisplay2D : MonoBehaviour
         if (material != null && simulation != null)
         {
             // Check if obstacle should be displayed
-            meshRenderer.enabled = simulation.displayObstacle;
+            bool shouldDisplay = simulation.displayObstacle && 
+                               (useLaberinto ? simulation.obstacles.Count > 0 : true);
             
-            if (simulation.displayObstacle)
+            meshRenderer.enabled = shouldDisplay;
+            
+            if (shouldDisplay)
             {
-                // Update obstacle data and scale
-                material.SetVector("_ObstacleSize", simulation.obstacleSize);
-                material.SetVector("_ObstacleCentre", simulation.obstacleCentre);
+                if (useLaberinto && simulation.useLaberinto)
+                {
+                    UpdateNewObstacleSystem();
+                }
+                else
+                {
+                    UpdateLegacyObstacleSystem();
+                }
+                
+                // Update common properties
                 material.SetFloat("_Scale", worldScale);
                 material.SetFloat("_ScaleY", scaleY);
                 material.SetFloat("_OffsetX", offsetX);
@@ -137,11 +172,48 @@ public class ObstacleDisplay2D : MonoBehaviour
         }
     }
     
+    void UpdateNewObstacleSystem()
+    {
+        if (simulation.obstacles.Count > 0)
+        {
+            // Convert obstacles to float4 array
+            float4[] obstacleData = new float4[Mathf.Min(simulation.obstacles.Count, maxObstacles)];
+            for (int i = 0; i < obstacleData.Length; i++)
+            {
+                obstacleData[i] = new float4(
+                    simulation.obstacles[i].position.x,
+                    simulation.obstacles[i].position.y,
+                    simulation.obstacles[i].size.x,
+                    simulation.obstacles[i].size.y
+                );
+            }
+            
+            obstacleBuffer.SetData(obstacleData);
+            material.SetInt("_NumObstacles", obstacleData.Length);
+        }
+        else
+        {
+            material.SetInt("_NumObstacles", 0);
+        }
+    }
+    
+    void UpdateLegacyObstacleSystem()
+    {
+        // Update legacy obstacle data
+        material.SetVector("_ObstacleSize", simulation.obstacleSize);
+        material.SetVector("_ObstacleCentre", simulation.obstacleCentre);
+    }
+    
     void OnDestroy()
     {
         if (material != null)
         {
             DestroyImmediate(material);
+        }
+        
+        if (obstacleBuffer != null)
+        {
+            obstacleBuffer.Release();
         }
     }
 }
