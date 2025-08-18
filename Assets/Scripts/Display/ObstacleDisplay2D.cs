@@ -13,7 +13,7 @@ public class ObstacleDisplay2D : MonoBehaviour
     
     [Header("Maze")]
     public bool useMaze = true;
-    public int maxObstacles = 100; // Máximo número de obstáculos que puede manejar el shader
+    public int maxObstacles = 2000; // Máximo número de obstáculos que puede manejar el shader
     
     private Material material;
     private MeshRenderer meshRenderer;

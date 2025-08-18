@@ -15,6 +15,19 @@ public struct ObstacleRectangle
     }
 }
 
+[System.Serializable]
+public struct SpawnRegion
+{
+    public Vector2 position;
+    public Vector2 size;
+
+    public SpawnRegion(Vector2 pos, Vector2 s)
+    {
+        position = pos;
+        size = s;
+    }
+}
+
 public class Simulation2D : MonoBehaviour
 {
     public event System.Action SimulationStepCompleted;
@@ -44,6 +57,7 @@ public class Simulation2D : MonoBehaviour
     
     [Header("Maze")]
     [HideInInspector] public List<ObstacleRectangle> obstacles = new List<ObstacleRectangle>();
+    [HideInInspector] public List<SpawnRegion> spawnRegions = new List<SpawnRegion>();
     
     [Header("Obstacle File Settings")]
     public bool useMaze = true;
@@ -85,14 +99,15 @@ public class Simulation2D : MonoBehaviour
 
     void Awake()
     {
-        // Cargar obstáculos desde archivo si está habilitado
+        // Cargar laberinto (obstáculos y spawns) desde archivo si está habilitado
         if (useMaze && loadObstaclesFromFile)
         {
-            List<ObstacleRectangle> loadedObstacles = ObstacleLoader.LoadObstaclesFromCSV(obstacleFilePath);
-            if (loadedObstacles.Count > 0)
+            var mazeData = ObstacleLoader.LoadMazeFromCSV(obstacleFilePath);
+            if (mazeData.obstacles.Count > 0 || mazeData.spawns.Count > 0)
             {
-                obstacles = loadedObstacles;
-                Debug.Log($"Se cargaron {obstacles.Count} obstáculos desde {obstacleFilePath}");
+                obstacles = mazeData.obstacles;
+                spawnRegions = mazeData.spawns;
+                Debug.Log($"Se cargaron {obstacles.Count} obstáculos y {spawnRegions.Count} spawns desde {obstacleFilePath}");
             }
             else
             {
@@ -334,11 +349,12 @@ public class Simulation2D : MonoBehaviour
     {
         if (loadObstaclesFromFile)
         {
-            List<ObstacleRectangle> loadedObstacles = ObstacleLoader.LoadObstaclesFromCSV(obstacleFilePath);
-            if (loadedObstacles.Count > 0)
+            var mazeData = ObstacleLoader.LoadMazeFromCSV(obstacleFilePath);
+            if (mazeData.obstacles.Count > 0 || mazeData.spawns.Count > 0)
             {
-                obstacles = loadedObstacles;
-                Debug.Log($"Se recargaron {obstacles.Count} obstáculos desde {obstacleFilePath}");
+                obstacles = mazeData.obstacles;
+                spawnRegions = mazeData.spawns;
+                Debug.Log($"Se recargaron {obstacles.Count} obstáculos y {spawnRegions.Count} spawns desde {obstacleFilePath}");
                 
                 // Recrear el buffer de obstáculos con el nuevo tamaño
                 if (obstacleBuffer != null)

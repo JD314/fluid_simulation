@@ -20,7 +20,7 @@ public class SimpleObstacleDisplay2D : MonoBehaviour
     private Material material;
     private MeshRenderer meshRenderer;
     private ComputeBuffer obstacleBuffer;
-    private const int MAX_OBSTACLES = 100;
+    private const int MAX_OBSTACLES = 2000;
     
     void Start()
     {
