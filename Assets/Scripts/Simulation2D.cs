@@ -8,18 +8,19 @@ public class Simulation2D : MonoBehaviour
     [Header("Simulation Settings")]
     public float timeScale = 1;
     public bool fixedTimeStep;
-    public int iterationsPerFrame;
-    public float gravity;
+    public int iterationsPerFrame = 3;
+    public float gravity = -12.0f;
     [Range(0, 1)] public float collisionDamping = 0.95f;
-    public float smoothingRadius = 2;
-    public float targetDensity;
-    public float pressureMultiplier;
-    public float nearPressureMultiplier;
-    public float viscosityStrength;
+    public float smoothingRadius = 0.35f;
+    public float targetDensity = 55f;
+    public float pressureMultiplier = 500f;
+    public float nearPressureMultiplier = 18f;
+    public float viscosityStrength = 0.06f;
     public Vector2 boundsSize;
     public Vector2 obstacleSize;
     public Vector2 obstacleCentre;
-
+    public bool displayObstacle = true;
+    
     [Header("Interaction Settings")]
     public float interactionRadius;
     public float interactionStrength;
@@ -28,6 +29,7 @@ public class Simulation2D : MonoBehaviour
     public ComputeShader compute;
     public ParticleSpawner spawner;
     public ParticleDisplay2D display;
+    
 
     // Buffers
     public ComputeBuffer positionBuffer { get; private set; }
@@ -157,6 +159,7 @@ public class Simulation2D : MonoBehaviour
         compute.SetFloat("pressureMultiplier", pressureMultiplier);
         compute.SetFloat("nearPressureMultiplier", nearPressureMultiplier);
         compute.SetFloat("viscosityStrength", viscosityStrength);
+        // Trabajar aquí de como se hara el obstaculo más complejo
         compute.SetVector("boundsSize", boundsSize);
         compute.SetVector("obstacleSize", obstacleSize);
         compute.SetVector("obstacleCentre", obstacleCentre);
@@ -167,19 +170,19 @@ public class Simulation2D : MonoBehaviour
         compute.SetFloat("SpikyPow3DerivativeScalingFactor", 30 / (Mathf.Pow(smoothingRadius, 5) * Mathf.PI));
         compute.SetFloat("SpikyPow2DerivativeScalingFactor", 12 / (Mathf.Pow(smoothingRadius, 4) * Mathf.PI));
 
-        // Mouse interaction settings:
-        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        bool isPullInteraction = Input.GetMouseButton(0);
-        bool isPushInteraction = Input.GetMouseButton(1);
-        float currInteractStrength = 0;
-        if (isPushInteraction || isPullInteraction)
-        {
-            currInteractStrength = isPushInteraction ? -interactionStrength : interactionStrength;
-        }
+        // // Mouse interaction settings:
+        // Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        // bool isPullInteraction = Input.GetMouseButton(0);
+        // bool isPushInteraction = Input.GetMouseButton(1);
+        // float currInteractStrength = 0;
+        // if (isPushInteraction || isPullInteraction)
+        // {
+        //     currInteractStrength = isPushInteraction ? -interactionStrength : interactionStrength;
+        // }
 
-        compute.SetVector("interactionInputPoint", mousePos);
-        compute.SetFloat("interactionInputStrength", currInteractStrength);
-        compute.SetFloat("interactionInputRadius", interactionRadius);
+        // compute.SetVector("interactionInputPoint", mousePos);
+        // compute.SetFloat("interactionInputStrength", currInteractStrength);
+        // compute.SetFloat("interactionInputRadius", interactionRadius);
     }
 
     void SetInitialBufferData(ParticleSpawner.ParticleSpawnData spawnData)
