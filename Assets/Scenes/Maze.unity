@@ -184,7 +184,7 @@ Camera:
   far clip plane: 1000
   field of view: 163.7
   orthographic: 1
-  orthographic size: 45
+  orthographic size: 23
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -309,10 +309,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4c02e97aa0b7bb4d9dd4f984b4fce94, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  particleCount: 15000
+  particleCount: 80000
   initialVelocity: {x: 0, y: 0}
-  spawnCentre: {x: 3.75, y: 35.15}
-  spawnSize: {x: 3.79, y: 7}
+  spawnCentre: {x: 0, y: 46}
+  spawnSize: {x: 42, y: 40}
   jitterStr: 0.025
   showSpawnBoundsGizmos: 1
 --- !u!114 &1978374366
@@ -337,7 +337,7 @@ MonoBehaviour:
   pressureMultiplier: 500
   nearPressureMultiplier: 18
   viscosityStrength: 0.06
-  boundsSize: {x: 84, y: 100}
+  boundsSize: {x: 42, y: 180}
   interactionRadius: 2
   interactionStrength: 90
   obstacleEdgeThreshold: 0.1
@@ -390,6 +390,7 @@ MonoBehaviour:
   obstacleFilePath: maze_2.csv
   loadObstaclesFromFile: 1
   reloadObstaclesOnStart: 1
+  displayObstacleHitbox: 0
   compute: {fileID: 7200000, guid: 1c77ce8de78fddb419ed2d15cae41af0, type: 3}
   spawner: {fileID: 1978374365}
   display: {fileID: 1978374364}
@@ -405,11 +406,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e7868215b3c12a40957fe4a6d61bb2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  obstacleColor: {r: 1, g: 0.9858491, b: 0.9858491, a: 1}
+  obstacleColor: {r: 0.9339623, g: 0.885502, b: 0.885502, a: 1}
   scaleY: 1
   offsetX: 0
   offsetY: 0
-  sizeAdjustment: {x: 10, y: 23}
+  sizeAdjustment: {x: 5, y: 40}
   defaultPadding: {x: 20, y: 20}
   simulation: {fileID: 0}
 --- !u!1660057539 &9223372036854775807

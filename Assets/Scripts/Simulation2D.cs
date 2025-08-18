@@ -64,6 +64,7 @@ public class Simulation2D : MonoBehaviour
     public string obstacleFilePath = "mazes_csv/obstacles.csv";
     public bool loadObstaclesFromFile = true;
     public bool reloadObstaclesOnStart = true;
+    public bool displayObstacleHitbox = true;
     
 
     [Header("References")]
@@ -386,9 +387,14 @@ public class Simulation2D : MonoBehaviour
     {
         Gizmos.color = new Color(0, 1, 0, 0.4f);
         Gizmos.DrawWireCube(Vector2.zero, boundsSize);
-        foreach (var obstacle in obstacles)
+        
+        // Draw obstacle hitboxes only if enabled
+        if ((useMaze && displayObstacleHitbox) || (!useMaze && displayObstacle))
         {
-            Gizmos.DrawWireCube(obstacle.position, obstacle.size);
+            foreach (var obstacle in obstacles)
+            {
+                Gizmos.DrawWireCube(obstacle.position, obstacle.size);
+            }
         }
 
         if (Application.isPlaying)

@@ -50,12 +50,16 @@ def generate_maze(choice, width, height, start_side, start_rel, end_side, end_re
     - Exception: Otros errores de ejecución
     """
 
-    scripts_dir = "Mazes/scripts"
-    output_dir = "Mazes/output"
+    scripts_dir = "C:/Users/JD/Desktop/fluid_sim/Maze_generation/scripts"
+    output_dir = "C:/Users/JD/Desktop/fluid_sim/Maze_generation/output"
+
+    
     mazes = len([f for f in os.listdir(output_dir) if f.endswith(".txt")])
+
+
     scripts = [f for f in os.listdir(scripts_dir) if f.endswith(".js")]
     script_path = os.path.join(scripts_dir, scripts[choice])
-
+    
     try:
         # Ejecuta el script con todos los argumentos necesarios
         result = subprocess.run(
@@ -121,7 +125,8 @@ def read_maze(maze_file):
 
 if __name__ == "__main__":
     # Algoritmo
-    choice=3
+    choice=0
+    
     # Ancho y alto del laberinto
     width=21        
     height=21   
@@ -142,11 +147,13 @@ if __name__ == "__main__":
     end_side=end_side,      
     end_rel=end_rel
     )
-    
+    # print([f for f in os.listdir(scripts_dir) if f.endswith(".js")])
+
     # import matplotlib.pyplot as plt
     # metadata, matriz = read_maze("Mazes/output/maze_0.txt")
     # scale = 1000 / matriz.shape[0]
 
     # plt.imshow(zoom(matriz, zoom=scale, order=0), cmap="gray_r")
     # # plt.savefig("Mazes/output/maze_9.png")
+
 

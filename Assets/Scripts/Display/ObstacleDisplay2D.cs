@@ -147,8 +147,18 @@ public class ObstacleDisplay2D : MonoBehaviour
         if (material != null && simulation != null)
         {
             // Check if obstacle should be displayed
-            bool shouldDisplay = simulation.displayObstacle && 
-                               (useMaze ? simulation.obstacles.Count > 0 : true);
+            bool shouldDisplay = false;
+            
+            if (useMaze && simulation.useMaze)
+            {
+                // For new maze system, use displayObstacleHitbox setting
+                shouldDisplay = simulation.displayObstacleHitbox && simulation.obstacles.Count > 0;
+            }
+            else
+            {
+                // For legacy system, use displayObstacle setting
+                shouldDisplay = simulation.displayObstacle;
+            }
             
             meshRenderer.enabled = shouldDisplay;
             
