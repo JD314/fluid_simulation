@@ -8,6 +8,11 @@ public class ParticleDisplay2D : MonoBehaviour
 	public Gradient colourMap;
 	public int gradientResolution;
 	public float velocityDisplayMax;
+	
+	[Header("Particle Rendering")]
+	[Range(0.0f, 5.0f)] public float blurRadius = 0.5f;
+	[Range(0.0f, 1.0f)] public float softness = 0.3f;
+	[Range(0.0f, 2.0f)] public float glowIntensity = 0.5f;
 
 	Material material;
 	ComputeBuffer argsBuffer;
@@ -48,6 +53,11 @@ public class ParticleDisplay2D : MonoBehaviour
 
 			material.SetFloat("scale", scale);
 			material.SetFloat("velocityMax", velocityDisplayMax);
+			
+			// Set particle rendering parameters
+			material.SetFloat("_BlurRadius", blurRadius);
+			material.SetFloat("_Softness", softness);
+			material.SetFloat("_GlowIntensity", glowIntensity);
 		}
 		
 

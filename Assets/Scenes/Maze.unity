@@ -297,6 +297,9 @@ MonoBehaviour:
     m_NumAlphaKeys: 2
   gradientResolution: 64
   velocityDisplayMax: 6.5
+  blurRadius: 4
+  softness: 1
+  glowIntensity: 2
 --- !u!114 &1978374365
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -311,8 +314,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   particleCount: 80000
   initialVelocity: {x: 0, y: 0}
-  spawnCentre: {x: 0, y: 42}
-  spawnSize: {x: 42, y: 40}
+  spawnCentre: {x: 0, y: 37}
+  spawnSize: {x: 42, y: 28}
   jitterStr: 0.025
   showSpawnBoundsGizmos: 1
 --- !u!114 &1978374366
@@ -382,6 +385,8 @@ MonoBehaviour:
     size: {x: 0, y: 0}
   - position: {x: 0, y: 0}
     size: {x: 0, y: 0}
+  - position: {x: 0, y: 50}
+    size: {x: 30, y: 5}
   spawnRegions: []
   displayObstacle: 1
   useMaze: 1
@@ -389,7 +394,12 @@ MonoBehaviour:
   obstacleOverlapOffset: 0.15
   loadObstaclesFromFile: 1
   reloadObstaclesOnStart: 1
-  displayObstacleHitbox: 0
+  displayObstacleHitbox: 1
+  enableHorizontalBarriers: 1
+  barrierWidth: 20
+  barrierHeight: 1
+  barrierSpacing: 5
+  barrierStartY: 25
   compute: {fileID: 7200000, guid: 1c77ce8de78fddb419ed2d15cae41af0, type: 3}
   spawner: {fileID: 1978374365}
   display: {fileID: 1978374364}

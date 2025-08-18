@@ -1,6 +1,8 @@
 Shader "Instanced/Particle2D" {
 	Properties {
-		
+		_BlurRadius ("Radio de Difusión", Range(0.0, 5.0)) = 0.5
+		_Softness ("Softness", Range(0.0, 1.0)) = 0.3
+		_GlowIntensity ("Glow Intensity", Range(0.0, 2.0)) = 0.5
 	}
 	SubShader {
 
@@ -26,6 +28,9 @@ Shader "Instanced/Particle2D" {
 			Texture2D<float4> ColourMap;
 			SamplerState linear_clamp_sampler;
 			float velocityMax;
+			float _BlurRadius;
+			float _Softness;
+			float _GlowIntensity;
 
 			struct v2f
 			{
@@ -57,8 +62,44 @@ Shader "Instanced/Particle2D" {
 			{
 				float2 centreOffset = (i.uv.xy - 0.5) * 2;
 				float sqrDst = dot(centreOffset, centreOffset);
-				float delta = fwidth(sqrt(sqrDst));
-				float alpha = 1 - smoothstep(1 - delta, 1 + delta, sqrDst);
+				
+				// Enhanced blur and softness calculation
+				float blurRadius = _BlurRadius;
+				float softness = _Softness;
+				float glowIntensity = _GlowIntensity;
+				
+				// Calculate distance from center with blur radius
+				float dist = sqrt(sqrDst);
+				float normalizedDist = dist / (1.0 + blurRadius * 0.5);
+				
+				// Create soft falloff with multiple smoothstep layers
+				float alpha = 1.0;
+				
+				// Core particle (sharp center)
+				float coreAlpha = 1.0 - smoothstep(0.0, 0.3, normalizedDist);
+				
+				// Soft edge
+				float softAlpha = 1.0 - smoothstep(0.3, 0.7 + softness, normalizedDist);
+				
+				// Glow effect
+				float glowAlpha = 1.0 - smoothstep(0.7, 1.5 + glowIntensity, normalizedDist);
+				glowAlpha *= 0.3; // Reduce glow intensity
+				
+				// Combine all layers
+				alpha = max(coreAlpha, softAlpha * 0.8);
+				alpha = max(alpha, glowAlpha);
+				
+				// Apply additional blur for very soft particles
+				if (blurRadius > 1.0) {
+					float extraBlur = smoothstep(0.0, 1.0, 1.0 - normalizedDist);
+					alpha *= extraBlur;
+				}
+				
+				// Apply extreme blur for very high values
+				if (blurRadius > 3.0) {
+					float extremeBlur = smoothstep(0.0, 0.5, 1.0 - normalizedDist);
+					alpha *= extremeBlur;
+				}
 
 				float3 colour = i.colour;
 				return float4(colour, alpha);
