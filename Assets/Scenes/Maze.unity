@@ -311,7 +311,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   particleCount: 80000
   initialVelocity: {x: 0, y: 0}
-  spawnCentre: {x: 0, y: 46}
+  spawnCentre: {x: 0, y: 42}
   spawnSize: {x: 42, y: 40}
   jitterStr: 0.025
   showSpawnBoundsGizmos: 1
@@ -341,9 +341,6 @@ MonoBehaviour:
   interactionRadius: 2
   interactionStrength: 90
   obstacleEdgeThreshold: 0.1
-  obstacleSize: {x: 3, y: 5}
-  obstacleCentre: {x: -5, y: -4}
-  displayObstacle: 1
   obstacles:
   - position: {x: 0, y: 0}
     size: {x: 0, y: 0}
@@ -386,8 +383,10 @@ MonoBehaviour:
   - position: {x: 0, y: 0}
     size: {x: 0, y: 0}
   spawnRegions: []
+  displayObstacle: 1
   useMaze: 1
   obstacleFilePath: maze_2.csv
+  obstacleOverlapOffset: 0.15
   loadObstaclesFromFile: 1
   reloadObstaclesOnStart: 1
   displayObstacleHitbox: 0

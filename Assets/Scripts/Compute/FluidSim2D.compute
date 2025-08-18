@@ -35,9 +35,9 @@ const float2 interactionInputPoint;
 const float interactionInputStrength;
 const float interactionInputRadius;
 const float obstacleEdgeThreshold;
+const float obstacleOverlapOffset;
 
-const float2 obstacleSize;
-const float2 obstacleCentre;
+
 const uint numObstacles;
 
 float DensityKernel(float dst, float radius)
@@ -168,7 +168,7 @@ void HandleCollisions(uint particleIndex)
 	{
 		float4 obstacle = Obstacles[i];
 		float2 obstaclePos = obstacle.xy;
-		float2 obstacleSize = obstacle.zw;
+		float2 obstacleSize = obstacle.zw + obstacleOverlapOffset * 2.0; // Apply overlap offset
 		const float2 obstacleHalfSize = obstacleSize * 0.5;
 		float2 obstacleEdgeDst = obstacleHalfSize - abs(pos - obstaclePos);
 
@@ -177,7 +177,7 @@ void HandleCollisions(uint particleIndex)
 			// Check if particle is very close to the obstacle edge (within a small threshold)
 			if (obstacleEdgeDst.x < obstacleEdgeThreshold || obstacleEdgeDst.y < obstacleEdgeThreshold)
 			{
-				// Particle is on the edge - set velocity to 0
+				// Particle is on the edge - set velocity to 0 (safe now with overlap offset)
 				vel = float2(0, 0);
 			}
 			else

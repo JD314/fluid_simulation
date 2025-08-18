@@ -26,9 +26,7 @@ public class ParticleDisplay2D : MonoBehaviour
 		argsBuffer = ComputeHelper.CreateArgsBuffer(mesh, sim.positionBuffer.count);
 		bounds = new Bounds(Vector3.zero, Vector3.one * 10000);
 		
-		// Set obstacle data
-		material.SetVector("obstacleSize", sim.obstacleSize);
-		material.SetVector("obstacleCentre", sim.obstacleCentre);
+
 	}
 
 	void LateUpdate()
@@ -52,16 +50,7 @@ public class ParticleDisplay2D : MonoBehaviour
 			material.SetFloat("velocityMax", velocityDisplayMax);
 		}
 		
-		// Update obstacle data every frame (in case it changes)
-		if (material != null)
-		{
-			Simulation2D sim = FindObjectOfType<Simulation2D>();
-			if (sim != null)
-			{
-				material.SetVector("obstacleSize", sim.obstacleSize);
-				material.SetVector("obstacleCentre", sim.obstacleCentre);
-			}
-		}
+
 	}
 
 	public static void TextureFromGradient(ref Texture2D texture, int width, Gradient gradient, FilterMode filterMode = FilterMode.Bilinear)

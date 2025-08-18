@@ -49,19 +49,19 @@ public class Simulation2D : MonoBehaviour
     public float interactionRadius;
     public float interactionStrength;
     public float obstacleEdgeThreshold = 0.1f; // Threshold for particles to stick to obstacle edges
+    
 
-    [Header("Legacy Obstacle Settings")]
-    public Vector2 obstacleSize;
-    public Vector2 obstacleCentre;
-    public bool displayObstacle = true;
+
     
     [Header("Maze")]
     [HideInInspector] public List<ObstacleRectangle> obstacles = new List<ObstacleRectangle>();
     [HideInInspector] public List<SpawnRegion> spawnRegions = new List<SpawnRegion>();
     
     [Header("Obstacle File Settings")]
+    public bool displayObstacle = true;
     public bool useMaze = true;
     public string obstacleFilePath = "mazes_csv/obstacles.csv";
+    public float obstacleOverlapOffset = 0.05f; // Small overlap between obstacles to prevent particle leakage
     public bool loadObstaclesFromFile = true;
     public bool reloadObstaclesOnStart = true;
     public bool displayObstacleHitbox = true;
@@ -236,12 +236,11 @@ public class Simulation2D : MonoBehaviour
         compute.SetFloat("nearPressureMultiplier", nearPressureMultiplier);
         compute.SetFloat("viscosityStrength", viscosityStrength);
         compute.SetFloat("obstacleEdgeThreshold", obstacleEdgeThreshold);
+        compute.SetFloat("obstacleOverlapOffset", obstacleOverlapOffset);
         // Trabajar aquí de como se hara el obstaculo más complejo
         compute.SetVector("boundsSize", boundsSize);
         
-        // Legacy obstacle settings (mantener para compatibilidad)
-        compute.SetVector("obstacleSize", obstacleSize);
-        compute.SetVector("obstacleCentre", obstacleCentre);
+
         
         // New obstacle system
         if (useMaze && obstacles.Count > 0)
@@ -393,7 +392,14 @@ public class Simulation2D : MonoBehaviour
         {
             foreach (var obstacle in obstacles)
             {
+                // Draw the actual obstacle size
+                Gizmos.color = new Color(0, 1, 0, 0.4f);
                 Gizmos.DrawWireCube(obstacle.position, obstacle.size);
+                
+                // Draw the expanded obstacle size with overlap offset
+                Gizmos.color = new Color(1, 0, 0, 0.2f); // Red for expanded collision area
+                Vector2 expandedSize = obstacle.size + Vector2.one * obstacleOverlapOffset * 2.0f;
+                Gizmos.DrawWireCube(obstacle.position, expandedSize);
             }
         }
 

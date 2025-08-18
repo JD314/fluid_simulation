@@ -147,31 +147,13 @@ public class ObstacleDisplay2D : MonoBehaviour
         if (material != null && simulation != null)
         {
             // Check if obstacle should be displayed
-            bool shouldDisplay = false;
-            
-            if (useMaze && simulation.useMaze)
-            {
-                // For new maze system, use displayObstacleHitbox setting
-                shouldDisplay = simulation.displayObstacleHitbox && simulation.obstacles.Count > 0;
-            }
-            else
-            {
-                // For legacy system, use displayObstacle setting
-                shouldDisplay = simulation.displayObstacle;
-            }
+            bool shouldDisplay = simulation.displayObstacleHitbox && simulation.obstacles.Count > 0;
             
             meshRenderer.enabled = shouldDisplay;
             
             if (shouldDisplay)
             {
-                if (useMaze && simulation.useMaze)
-                {
-                    UpdateNewObstacleSystem();
-                }
-                else
-                {
-                    UpdateLegacyObstacleSystem();
-                }
+                UpdateNewObstacleSystem();
                 
                 // Update common properties
                 material.SetFloat("_Scale", worldScale);
@@ -186,15 +168,17 @@ public class ObstacleDisplay2D : MonoBehaviour
     {
         if (simulation.obstacles.Count > 0)
         {
-            // Convert obstacles to float4 array
+            // Convert obstacles to float4 array with overlap offset
             float4[] obstacleData = new float4[Mathf.Min(simulation.obstacles.Count, maxObstacles)];
             for (int i = 0; i < obstacleData.Length; i++)
             {
+                // Apply overlap offset to the size for visualization
+                Vector2 expandedSize = simulation.obstacles[i].size + Vector2.one * simulation.obstacleOverlapOffset * 2.0f;
                 obstacleData[i] = new float4(
                     simulation.obstacles[i].position.x,
                     simulation.obstacles[i].position.y,
-                    simulation.obstacles[i].size.x,
-                    simulation.obstacles[i].size.y
+                    expandedSize.x,
+                    expandedSize.y
                 );
             }
             
@@ -207,12 +191,7 @@ public class ObstacleDisplay2D : MonoBehaviour
         }
     }
     
-    void UpdateLegacyObstacleSystem()
-    {
-        // Update legacy obstacle data
-        material.SetVector("_ObstacleSize", simulation.obstacleSize);
-        material.SetVector("_ObstacleCentre", simulation.obstacleCentre);
-    }
+
     
     void OnDestroy()
     {
