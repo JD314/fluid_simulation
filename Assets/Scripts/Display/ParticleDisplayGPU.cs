@@ -27,6 +27,7 @@ public class ParticleDisplay2D : MonoBehaviour
 		material.SetBuffer("Positions2D", sim.positionBuffer);
 		material.SetBuffer("Velocities", sim.velocityBuffer);
 		material.SetBuffer("DensityData", sim.densityBuffer);
+		material.SetBuffer("ParticleTypes", sim.typeBuffer);
 
 		argsBuffer = ComputeHelper.CreateArgsBuffer(mesh, sim.positionBuffer.count);
 		bounds = new Bounds(Vector3.zero, Vector3.one * 10000);
@@ -58,6 +59,10 @@ public class ParticleDisplay2D : MonoBehaviour
 			material.SetFloat("_BlurRadius", blurRadius);
 			material.SetFloat("_Softness", softness);
 			material.SetFloat("_GlowIntensity", glowIntensity);
+			
+			// Set particle type colors
+			material.SetColor("fluidColor", Color.cyan);
+			material.SetColor("airColor", Color.white);
 		}
 		
 

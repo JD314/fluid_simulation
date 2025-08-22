@@ -19,24 +19,41 @@ RWStructuredBuffer<float2> Densities; // Density, Near Density
 RWStructuredBuffer<uint3> SpatialIndices; // used for spatial hashing
 RWStructuredBuffer<uint> SpatialOffsets; // used for spatial hashing
 StructuredBuffer<float4> Obstacles; // x,y = position, z,w = size
+StructuredBuffer<int> ParticleTypes; // 0 = fluido, 1 = aire
+StructuredBuffer<float> ParticleMasses; // Masas específicas por partícula
 
 // Settings
 const uint numParticles;
-const float gravity;
+const uint numFluidParticles;
+const uint numAirParticles;
 const float deltaTime;
 const float collisionDamping;
 const float smoothingRadius;
-const float targetDensity;
-const float pressureMultiplier;
-const float nearPressureMultiplier;
-const float viscosityStrength;
 const float2 boundsSize;
 const float2 interactionInputPoint;
 const float interactionInputStrength;
 const float interactionInputRadius;
 const float obstacleEdgeThreshold;
 const float obstacleOverlapOffset;
+const float fluidAirInteractionStrength;
 
+// Fluid particle properties
+const float fluidGravity;
+const float fluidTargetDensity;
+const float fluidPressureMultiplier;
+const float fluidNearPressureMultiplier;
+const float fluidViscosityStrength;
+const float fluidMass;
+const float fluidCompressibility;
+
+// Air particle properties
+const float airGravity;
+const float airTargetDensity;
+const float airPressureMultiplier;
+const float airNearPressureMultiplier;
+const float airViscosityStrength;
+const float airMass;
+const float airCompressibility;
 
 const uint numObstacles;
 
@@ -106,20 +123,42 @@ float2 CalculateDensity(float2 pos)
 	return float2(density, nearDensity);
 }
 
-float PressureFromDensity(float density)
+float PressureFromDensity(float density, int particleType)
 {
-	return (density - targetDensity) * pressureMultiplier;
+	if (particleType == 0) // Fluido
+	{
+		return (density - fluidTargetDensity) * fluidPressureMultiplier * fluidCompressibility;
+	}
+	else // Aire
+	{
+		return (density - airTargetDensity) * airPressureMultiplier * airCompressibility;
+	}
 }
 
-float NearPressureFromDensity(float nearDensity)
+float NearPressureFromDensity(float nearDensity, int particleType)
 {
-	return nearPressureMultiplier * nearDensity;
+	if (particleType == 0) // Fluido
+	{
+		return fluidNearPressureMultiplier * nearDensity;
+	}
+	else // Aire
+	{
+		return airNearPressureMultiplier * nearDensity;
+	}
 }
 
-float2 ExternalForces(float2 pos, float2 velocity)
+float2 ExternalForces(float2 pos, float2 velocity, int particleType)
 {
-	// Gravity
-	float2 gravityAccel = float2(0, gravity);
+	// Gravity based on particle type
+	float2 gravityAccel;
+	if (particleType == 0) // Fluido
+	{
+		gravityAccel = float2(0, fluidGravity);
+	}
+	else // Aire
+	{
+		gravityAccel = float2(0, airGravity);
+	}
 	
 	// Input interactions modify gravity
 	if (interactionInputStrength != 0) {
@@ -205,8 +244,10 @@ void ExternalForces(uint3 id : SV_DispatchThreadID)
 {
 	if (id.x >= numParticles) return;
 
+	int particleType = ParticleTypes[id.x];
+	
 	// External forces (gravity and input interaction)
-	Velocities[id.x] += ExternalForces(Positions[id.x], Velocities[id.x]) * deltaTime;
+	Velocities[id.x] += ExternalForces(Positions[id.x], Velocities[id.x], particleType) * deltaTime;
 
 	// Predict
 	const float predictionFactor = 1 / 120.0;
@@ -242,10 +283,11 @@ void CalculatePressureForce (uint3 id : SV_DispatchThreadID)
 {
 	if (id.x >= numParticles) return;
 
+	int particleType = ParticleTypes[id.x];
 	float density = Densities[id.x][0];
 	float densityNear = Densities[id.x][1];
-	float pressure = PressureFromDensity(density);
-	float nearPressure = NearPressureFromDensity(densityNear);
+	float pressure = PressureFromDensity(density, particleType);
+	float nearPressure = NearPressureFromDensity(densityNear, particleType);
 	float2 pressureForce = 0;
 	
 	float2 pos = PredictedPositions[id.x];
@@ -283,21 +325,29 @@ void CalculatePressureForce (uint3 id : SV_DispatchThreadID)
 			float dst = sqrt(sqrDstToNeighbour);
 			float2 dirToNeighbour = dst > 0 ? offsetToNeighbour / dst : float2(0, 1);
 
+			int neighbourType = ParticleTypes[neighbourIndex];
 			float neighbourDensity = Densities[neighbourIndex][0];
 			float neighbourNearDensity = Densities[neighbourIndex][1];
-			float neighbourPressure = PressureFromDensity(neighbourDensity);
-			float neighbourNearPressure = NearPressureFromDensity(neighbourNearDensity);
+			float neighbourPressure = PressureFromDensity(neighbourDensity, neighbourType);
+			float neighbourNearPressure = NearPressureFromDensity(neighbourNearDensity, neighbourType);
 
 			float sharedPressure = (pressure + neighbourPressure) * 0.5;
 			float sharedNearPressure = (nearPressure + neighbourNearPressure) * 0.5;
 
-			pressureForce += dirToNeighbour * DensityDerivative(dst, smoothingRadius) * sharedPressure / neighbourDensity;
-			pressureForce += dirToNeighbour * NearDensityDerivative(dst, smoothingRadius) * sharedNearPressure / neighbourNearDensity;
+			// Apply interaction strength between different particle types
+			float interactionMultiplier = 1.0;
+			if (particleType != neighbourType)
+			{
+				interactionMultiplier = fluidAirInteractionStrength;
+			}
+
+			pressureForce += dirToNeighbour * DensityDerivative(dst, smoothingRadius) * sharedPressure * interactionMultiplier / neighbourDensity;
+			pressureForce += dirToNeighbour * NearDensityDerivative(dst, smoothingRadius) * sharedNearPressure * interactionMultiplier / neighbourNearDensity;
 		}
 	}
 
 	float2 acceleration = pressureForce / density;
-	Velocities[id.x] += acceleration * deltaTime;//
+	Velocities[id.x] += acceleration * deltaTime;
 }
 
 
@@ -307,13 +357,24 @@ void CalculateViscosity (uint3 id : SV_DispatchThreadID)
 {
 	if (id.x >= numParticles) return;
 	
-		
+	int particleType = ParticleTypes[id.x];
 	float2 pos = PredictedPositions[id.x];
 	int2 originCell = GetCell2D(pos, smoothingRadius);
 	float sqrRadius = smoothingRadius * smoothingRadius;
 
 	float2 viscosityForce = 0;
 	float2 velocity = Velocities[id.x];
+	
+	// Get viscosity strength based on particle type
+	float currentViscosityStrength;
+	if (particleType == 0) // Fluido
+	{
+		currentViscosityStrength = fluidViscosityStrength;
+	}
+	else // Aire
+	{
+		currentViscosityStrength = airViscosityStrength;
+	}
 
 	for (int i = 0; i < 9; i ++)
 	{
@@ -343,11 +404,20 @@ void CalculateViscosity (uint3 id : SV_DispatchThreadID)
 
 			float dst = sqrt(sqrDstToNeighbour);
 			float2 neighbourVelocity = Velocities[neighbourIndex];
-			viscosityForce += (neighbourVelocity - velocity) * ViscosityKernel(dst, smoothingRadius);
+			
+			// Apply interaction strength between different particle types
+			float interactionMultiplier = 1.0;
+			int neighbourType = ParticleTypes[neighbourIndex];
+			if (particleType != neighbourType)
+			{
+				interactionMultiplier = fluidAirInteractionStrength;
+			}
+			
+			viscosityForce += (neighbourVelocity - velocity) * ViscosityKernel(dst, smoothingRadius) * interactionMultiplier;
 		}
 
 	}
-	Velocities[id.x] += viscosityForce * viscosityStrength * deltaTime;
+	Velocities[id.x] += viscosityForce * currentViscosityStrength * deltaTime;
 }
 
 [numthreads(NumThreads, 1, 1)]

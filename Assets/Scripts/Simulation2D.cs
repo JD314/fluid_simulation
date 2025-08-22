@@ -28,6 +28,66 @@ public struct SpawnRegion
     }
 }
 
+[System.Serializable]
+public struct ParticleTypeConfig
+{
+    [Header("Física")]
+    public float gravity;
+    public float targetDensity;
+    public float pressureMultiplier;
+    public float nearPressureMultiplier;
+    public float viscosityStrength;
+    public float mass;
+    public float compressibility;
+    
+    [Header("Visual")]
+    public Color particleColor;
+    public float particleScale;
+    
+    [Header("Spawn")]
+    public int particleCount;
+    public Vector2 initialVelocity;
+    public float jitterStrength;
+    
+    public static ParticleTypeConfig DefaultFluid()
+    {
+        return new ParticleTypeConfig
+        {
+            gravity = -12.0f,
+            targetDensity = 55f,
+            pressureMultiplier = 500f,
+            nearPressureMultiplier = 18f,
+            viscosityStrength = 0.06f,
+            mass = 1.0f,
+            compressibility = 1.0f,
+            particleColor = Color.cyan,
+            particleScale = 1.0f,
+            particleCount = 800,
+            initialVelocity = Vector2.zero,
+            jitterStrength = 0.1f
+        };
+    }
+    
+    public static ParticleTypeConfig DefaultAir()
+    {
+        return new ParticleTypeConfig
+        {
+            gravity = 0.0f, // Sin gravedad para el aire
+            targetDensity = 8f, // Mucho menos denso que el fluido
+            pressureMultiplier = 150f, // Menos presión
+            nearPressureMultiplier = 6f,
+            viscosityStrength = 0.02f, // Menos viscoso
+            mass = 0.2f, // Más ligero
+            compressibility = 3.0f, // Más compresible
+            particleColor = Color.white,
+            particleScale = 0.6f,
+            particleCount = 300,
+            initialVelocity = Vector2.zero,
+            jitterStrength = 0.05f
+        };
+    }
+}
+
 public class Simulation2D : MonoBehaviour
 {
     public event System.Action SimulationStepCompleted;
@@ -36,19 +96,19 @@ public class Simulation2D : MonoBehaviour
     public float timeScale = 1;
     public bool fixedTimeStep;
     public int iterationsPerFrame = 3;
-    public float gravity = -12.0f;
-    [Range(0, 1)] public float collisionDamping = 0.95f;
     public float smoothingRadius = 0.35f;
-    public float targetDensity = 55f;
-    public float pressureMultiplier = 500f;
-    public float nearPressureMultiplier = 18f;
-    public float viscosityStrength = 0.06f;
+    [Range(0, 1)] public float collisionDamping = 0.95f;
     public Vector2 boundsSize;
+    
+    [Header("Particle Types")]
+    public ParticleTypeConfig fluidConfig = ParticleTypeConfig.DefaultFluid();
+    public ParticleTypeConfig airConfig = ParticleTypeConfig.DefaultAir();
     
     [Header("Interaction Settings")]
     public float interactionRadius;
     public float interactionStrength;
     public float obstacleEdgeThreshold = 0.1f; // Threshold for particles to stick to obstacle edges
+    public float fluidAirInteractionStrength = 0.3f; // Strength of interaction between fluid and air particles
     
 
     [Header("Maze")]
@@ -58,7 +118,7 @@ public class Simulation2D : MonoBehaviour
     [Header("Obstacle Settings")]
     public bool displayObstacle = true;
     public bool useMaze = true;
-    public string obstacleFilePath = "mazes_csv/obstacles.csv";
+    public string obstacleFilePath = "mazes_csv/obstacles_with_air.csv";
     public float obstacleOverlapOffset = 0.05f; // Small overlap between obstacles to prevent particle leakage
     public bool loadObstaclesFromFile = true;
     public bool reloadObstaclesOnStart = true;
@@ -82,6 +142,8 @@ public class Simulation2D : MonoBehaviour
     public ComputeBuffer positionBuffer { get; private set; }
     public ComputeBuffer velocityBuffer { get; private set; }
     public ComputeBuffer densityBuffer { get; private set; }
+    public ComputeBuffer typeBuffer { get; private set; } // Nuevo buffer para tipos de partículas
+    public ComputeBuffer massBuffer { get; private set; } // Nuevo buffer para masas
     ComputeBuffer predictedPositionBuffer;
     ComputeBuffer spatialIndices;
     ComputeBuffer spatialOffsets;
@@ -102,6 +164,8 @@ public class Simulation2D : MonoBehaviour
     bool pauseNextFrame;
 
     public int numParticles { get; private set; }
+    public int numFluidParticles { get; private set; }
+    public int numAirParticles { get; private set; }
 
     void Awake()
     {
@@ -149,14 +213,21 @@ public class Simulation2D : MonoBehaviour
         float deltaTime = 1 / 60f;
         Time.fixedDeltaTime = deltaTime;
 
-        spawnData = spawner.GetSpawnData();
-        numParticles = spawnData.positions.Length;
+        // Calcular número total de partículas
+        numFluidParticles = fluidConfig.particleCount;
+        numAirParticles = airConfig.particleCount;
+        numParticles = numFluidParticles + numAirParticles;
+
+        // Generar datos de spawn para ambos tipos de partículas
+        spawnData = GenerateMultiTypeSpawnData();
 
         // Create buffers
         positionBuffer = ComputeHelper.CreateStructuredBuffer<float2>(numParticles);
         predictedPositionBuffer = ComputeHelper.CreateStructuredBuffer<float2>(numParticles);
         velocityBuffer = ComputeHelper.CreateStructuredBuffer<float2>(numParticles);
         densityBuffer = ComputeHelper.CreateStructuredBuffer<float2>(numParticles);
+        typeBuffer = ComputeHelper.CreateStructuredBuffer<int>(numParticles); // 0 = fluido, 1 = aire
+        massBuffer = ComputeHelper.CreateStructuredBuffer<float>(numParticles);
         spatialIndices = ComputeHelper.CreateStructuredBuffer<uint3>(numParticles);
         spatialOffsets = ComputeHelper.CreateStructuredBuffer<uint>(numParticles);
         obstacleBuffer = ComputeHelper.CreateStructuredBuffer<float4>(Mathf.Max(obstacles.Count, 1));
@@ -171,14 +242,17 @@ public class Simulation2D : MonoBehaviour
         ComputeHelper.SetBuffer(compute, spatialOffsets, "SpatialOffsets", spatialHashKernel, densityKernel, pressureKernel, viscosityKernel);
         ComputeHelper.SetBuffer(compute, densityBuffer, "Densities", densityKernel, pressureKernel, viscosityKernel);
         ComputeHelper.SetBuffer(compute, velocityBuffer, "Velocities", externalForcesKernel, pressureKernel, viscosityKernel, updatePositionKernel);
+        ComputeHelper.SetBuffer(compute, typeBuffer, "ParticleTypes", externalForcesKernel, densityKernel, pressureKernel, viscosityKernel);
+        ComputeHelper.SetBuffer(compute, massBuffer, "ParticleMasses", externalForcesKernel, densityKernel, pressureKernel, viscosityKernel);
         ComputeHelper.SetBuffer(compute, obstacleBuffer, "Obstacles", updatePositionKernel);
 
         compute.SetInt("numParticles", numParticles);
+        compute.SetInt("numFluidParticles", numFluidParticles);
+        compute.SetInt("numAirParticles", numAirParticles);
         compute.SetInt("numObstacles", obstacles.Count);
 
         gpuSort = new();
         gpuSort.SetBuffers(spatialIndices, spatialOffsets);
-
 
         // Init display
         display.Init(this);
@@ -241,19 +315,29 @@ public class Simulation2D : MonoBehaviour
     void UpdateSettings(float deltaTime)
     {
         compute.SetFloat("deltaTime", deltaTime);
-        compute.SetFloat("gravity", gravity);
         compute.SetFloat("collisionDamping", collisionDamping);
         compute.SetFloat("smoothingRadius", smoothingRadius);
-        compute.SetFloat("targetDensity", targetDensity);
-        compute.SetFloat("pressureMultiplier", pressureMultiplier);
-        compute.SetFloat("nearPressureMultiplier", nearPressureMultiplier);
-        compute.SetFloat("viscosityStrength", viscosityStrength);
         compute.SetFloat("obstacleEdgeThreshold", obstacleEdgeThreshold);
         compute.SetFloat("obstacleOverlapOffset", obstacleOverlapOffset);
-        // Trabajar aquí de como se hara el obstaculo más complejo
+        compute.SetFloat("fluidAirInteractionStrength", fluidAirInteractionStrength);
         compute.SetVector("boundsSize", boundsSize);
         
-
+        // Configuraciones específicas por tipo de partícula
+        compute.SetFloat("fluidGravity", fluidConfig.gravity);
+        compute.SetFloat("fluidTargetDensity", fluidConfig.targetDensity);
+        compute.SetFloat("fluidPressureMultiplier", fluidConfig.pressureMultiplier);
+        compute.SetFloat("fluidNearPressureMultiplier", fluidConfig.nearPressureMultiplier);
+        compute.SetFloat("fluidViscosityStrength", fluidConfig.viscosityStrength);
+        compute.SetFloat("fluidMass", fluidConfig.mass);
+        compute.SetFloat("fluidCompressibility", fluidConfig.compressibility);
+        
+        compute.SetFloat("airGravity", airConfig.gravity);
+        compute.SetFloat("airTargetDensity", airConfig.targetDensity);
+        compute.SetFloat("airPressureMultiplier", airConfig.pressureMultiplier);
+        compute.SetFloat("airNearPressureMultiplier", airConfig.nearPressureMultiplier);
+        compute.SetFloat("airViscosityStrength", airConfig.viscosityStrength);
+        compute.SetFloat("airMass", airConfig.mass);
+        compute.SetFloat("airCompressibility", airConfig.compressibility);
         
         // Update obstacle system (both maze and custom obstacles)
         if (obstacles.Count > 0)
@@ -298,6 +382,91 @@ public class Simulation2D : MonoBehaviour
         // compute.SetFloat("interactionInputRadius", interactionRadius);
     }
 
+    ParticleSpawner.ParticleSpawnData GenerateMultiTypeSpawnData()
+    {
+        var data = new ParticleSpawner.ParticleSpawnData(numParticles);
+        var rng = new Unity.Mathematics.Random(42);
+
+        // Generar partículas de fluido en la región de spawn original
+        GenerateParticlesInRegion(data, 0, numFluidParticles, fluidConfig, spawner.spawnCentre, spawner.spawnSize, rng, 0);
+
+        // Generar partículas de aire en las regiones de spawn del CSV con spawn por cuadrícula 1x1
+        int airParticleIndex = numFluidParticles;
+        foreach (var spawnRegion in spawnRegions)
+        {
+            int particlesInRegion = Mathf.Min(airConfig.particleCount / Mathf.Max(spawnRegions.Count, 1), 100); // Máximo 100 por región
+            GenerateAirParticlesInGrid(data, airParticleIndex, particlesInRegion, airConfig, spawnRegion.position, spawnRegion.size, rng, 1);
+            airParticleIndex += particlesInRegion;
+        }
+
+        // Si no hay regiones de spawn o no se generaron suficientes partículas de aire, generar en una región por defecto
+        if (airParticleIndex < numParticles)
+        {
+            Vector2 defaultAirSpawnCentre = new Vector2(0, 20); // Región por defecto para aire
+            Vector2 defaultAirSpawnSize = new Vector2(10, 5);
+            int remainingAirParticles = numParticles - airParticleIndex;
+            GenerateAirParticlesInGrid(data, airParticleIndex, remainingAirParticles, airConfig, defaultAirSpawnCentre, defaultAirSpawnSize, rng, 1);
+        }
+
+        return data;
+    }
+
+    void GenerateParticlesInRegion(ParticleSpawner.ParticleSpawnData data, int startIndex, int count, ParticleTypeConfig config, Vector2 centre, Vector2 size, Unity.Mathematics.Random rng, int particleType)
+    {
+        float2 s = size;
+        int numX = Mathf.CeilToInt(Mathf.Sqrt(s.x / s.y * count + (s.x - s.y) * (s.x - s.y) / (4 * s.y * s.y)) - (s.x - s.y) / (2 * s.y));
+        int numY = Mathf.CeilToInt(count / (float)numX);
+        int i = 0;
+
+        for (int y = 0; y < numY && startIndex + i < data.positions.Length; y++)
+        {
+            for (int x = 0; x < numX && startIndex + i < data.positions.Length; x++)
+            {
+                if (i >= count) break;
+
+                float tx = numX <= 1 ? 0.5f : x / (numX - 1f);
+                float ty = numY <= 1 ? 0.5f : y / (numY - 1f);
+
+                float angle = (float)rng.NextDouble() * 3.14f * 2;
+                Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+                Vector2 jitter = dir * config.jitterStrength * ((float)rng.NextDouble() - 0.5f);
+                
+                int particleIndex = startIndex + i;
+                data.positions[particleIndex] = new Vector2((tx - 0.5f) * size.x, (ty - 0.5f) * size.y) + jitter + centre;
+                data.velocities[particleIndex] = config.initialVelocity;
+                i++;
+            }
+        }
+    }
+    
+    void GenerateAirParticlesInGrid(ParticleSpawner.ParticleSpawnData data, int startIndex, int count, ParticleTypeConfig config, Vector2 centre, Vector2 size, Unity.Mathematics.Random rng, int particleType)
+    {
+        // Generar partículas de aire en una cuadrícula 1x1 (una partícula por unidad cuadrada)
+        int gridSize = Mathf.CeilToInt(Mathf.Sqrt(count));
+        int i = 0;
+
+        for (int y = 0; y < gridSize && startIndex + i < data.positions.Length; y++)
+        {
+            for (int x = 0; x < gridSize && startIndex + i < data.positions.Length; x++)
+            {
+                if (i >= count) break;
+
+                // Calcular posición en la cuadrícula 1x1
+                float tx = (x + 0.5f) / gridSize; // Centrar en cada celda
+                float ty = (y + 0.5f) / gridSize;
+
+                // Aplicar jitter mínimo para evitar partículas perfectamente alineadas
+                float jitterX = ((float)rng.NextDouble() - 0.5f) * 0.1f;
+                float jitterY = ((float)rng.NextDouble() - 0.5f) * 0.1f;
+                
+                int particleIndex = startIndex + i;
+                data.positions[particleIndex] = new Vector2((tx - 0.5f) * size.x, (ty - 0.5f) * size.y) + new Vector2(jitterX, jitterY) + centre;
+                data.velocities[particleIndex] = config.initialVelocity;
+                i++;
+            }
+        }
+    }
+
     void SetInitialBufferData(ParticleSpawner.ParticleSpawnData spawnData)
     {
         float2[] allPoints = new float2[spawnData.positions.Length];
@@ -306,6 +475,25 @@ public class Simulation2D : MonoBehaviour
         positionBuffer.SetData(allPoints);
         predictedPositionBuffer.SetData(allPoints);
         velocityBuffer.SetData(spawnData.velocities);
+        
+        // Inicializar buffers de tipos y masas
+        int[] particleTypes = new int[numParticles];
+        float[] particleMasses = new float[numParticles];
+        
+        for (int i = 0; i < numFluidParticles; i++)
+        {
+            particleTypes[i] = 0; // Fluido
+            particleMasses[i] = fluidConfig.mass;
+        }
+        
+        for (int i = numFluidParticles; i < numParticles; i++)
+        {
+            particleTypes[i] = 1; // Aire
+            particleMasses[i] = airConfig.mass;
+        }
+        
+        typeBuffer.SetData(particleTypes);
+        massBuffer.SetData(particleMasses);
         
         // Initialize obstacle buffer
         if (obstacles.Count > 0)
@@ -393,6 +581,24 @@ public class Simulation2D : MonoBehaviour
             // Usar Invoke para evitar llamadas múltiples durante OnValidate
             CancelInvoke("DelayedUpdateBarriers");
             Invoke("DelayedUpdateBarriers", 0.1f);
+        }
+        
+        // Regenerar partículas si se cambian las configuraciones de partículas
+        if (Application.isPlaying)
+        {
+            CancelInvoke("DelayedRegenerateParticles");
+            Invoke("DelayedRegenerateParticles", 0.1f);
+        }
+    }
+    
+    /// <summary>
+    /// Regeneración retardada de partículas para evitar múltiples llamadas
+    /// </summary>
+    void DelayedRegenerateParticles()
+    {
+        if (Application.isPlaying)
+        {
+            RegenerateParticles();
         }
     }
     
@@ -483,7 +689,7 @@ public class Simulation2D : MonoBehaviour
 
     void OnDestroy()
     {
-        ComputeHelper.Release(positionBuffer, predictedPositionBuffer, velocityBuffer, densityBuffer, spatialIndices, spatialOffsets, obstacleBuffer);
+        ComputeHelper.Release(positionBuffer, predictedPositionBuffer, velocityBuffer, densityBuffer, typeBuffer, massBuffer, spatialIndices, spatialOffsets, obstacleBuffer);
     }
     
     // ===== OBSTACLE SETTINGS - FUNCIONES PERSONALIZADAS =====
@@ -596,6 +802,55 @@ public class Simulation2D : MonoBehaviour
             SetInitialBufferData(spawnData);
             Debug.Log("Partículas reseteadas a posición inicial");
         }
+    }
+    
+    /// <summary>
+    /// Regenera las partículas con las configuraciones actuales
+    /// </summary>
+    [ContextMenu("Regenerar Partículas")]
+    public void RegenerateParticles()
+    {
+        // Recalcular número de partículas
+        numFluidParticles = fluidConfig.particleCount;
+        numAirParticles = airConfig.particleCount;
+        numParticles = numFluidParticles + numAirParticles;
+        
+        // Regenerar datos de spawn
+        spawnData = GenerateMultiTypeSpawnData();
+        
+        // Recrear buffers si es necesario
+        if (positionBuffer != null && positionBuffer.count != numParticles)
+        {
+            ComputeHelper.Release(positionBuffer, predictedPositionBuffer, velocityBuffer, densityBuffer, typeBuffer, massBuffer);
+            
+            positionBuffer = ComputeHelper.CreateStructuredBuffer<float2>(numParticles);
+            predictedPositionBuffer = ComputeHelper.CreateStructuredBuffer<float2>(numParticles);
+            velocityBuffer = ComputeHelper.CreateStructuredBuffer<float2>(numParticles);
+            densityBuffer = ComputeHelper.CreateStructuredBuffer<float2>(numParticles);
+            typeBuffer = ComputeHelper.CreateStructuredBuffer<int>(numParticles);
+            massBuffer = ComputeHelper.CreateStructuredBuffer<float>(numParticles);
+            
+            // Reconfigurar buffers en el compute shader
+            ComputeHelper.SetBuffer(compute, positionBuffer, "Positions", externalForcesKernel, updatePositionKernel);
+            ComputeHelper.SetBuffer(compute, predictedPositionBuffer, "PredictedPositions", externalForcesKernel, spatialHashKernel, densityKernel, pressureKernel, viscosityKernel);
+            ComputeHelper.SetBuffer(compute, velocityBuffer, "Velocities", externalForcesKernel, pressureKernel, viscosityKernel, updatePositionKernel);
+            ComputeHelper.SetBuffer(compute, densityBuffer, "Densities", densityKernel, pressureKernel, viscosityKernel);
+            ComputeHelper.SetBuffer(compute, typeBuffer, "ParticleTypes", externalForcesKernel, densityKernel, pressureKernel, viscosityKernel);
+            ComputeHelper.SetBuffer(compute, massBuffer, "ParticleMasses", externalForcesKernel, densityKernel, pressureKernel, viscosityKernel);
+            
+            compute.SetInt("numParticles", numParticles);
+            compute.SetInt("numFluidParticles", numFluidParticles);
+            compute.SetInt("numAirParticles", numAirParticles);
+            
+            // Reconfigurar display
+            if (display != null)
+            {
+                display.Init(this);
+            }
+        }
+        
+        SetInitialBufferData(spawnData);
+        Debug.Log($"Partículas regeneradas: {numFluidParticles} fluido, {numAirParticles} aire");
     }
     
     /// <summary>

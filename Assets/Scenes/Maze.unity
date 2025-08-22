@@ -297,7 +297,7 @@ MonoBehaviour:
     m_NumAlphaKeys: 2
   gradientResolution: 64
   velocityDisplayMax: 6.5
-  blurRadius: 4
+  blurRadius: 3.02
   softness: 1
   glowIntensity: 2
 --- !u!114 &1978374365
@@ -333,17 +333,39 @@ MonoBehaviour:
   timeScale: 1
   fixedTimeStep: 0
   iterationsPerFrame: 3
-  gravity: -12
-  collisionDamping: 0.95
   smoothingRadius: 0.35
-  targetDensity: 55
-  pressureMultiplier: 500
-  nearPressureMultiplier: 18
-  viscosityStrength: 0.06
+  collisionDamping: 0.95
   boundsSize: {x: 42, y: 180}
+  fluidConfig:
+    gravity: -12
+    targetDensity: 55
+    pressureMultiplier: 500
+    nearPressureMultiplier: 18
+    viscosityStrength: 0.06
+    mass: 1
+    compressibility: 1
+    particleColor: {r: 0, g: 1, b: 1, a: 1}
+    particleScale: 1
+    particleCount: 10000
+    initialVelocity: {x: 0, y: 0}
+    jitterStrength: 0.1
+  airConfig:
+    gravity: 0
+    targetDensity: 15
+    pressureMultiplier: 200
+    nearPressureMultiplier: 8
+    viscosityStrength: 0.03
+    mass: 0.3
+    compressibility: 10
+    particleColor: {r: 1, g: 0.023584902, b: 0.023584902, a: 1}
+    particleScale: 0.8
+    particleCount: 12000
+    initialVelocity: {x: 0, y: 0}
+    jitterStrength: 0.05
   interactionRadius: 2
   interactionStrength: 90
   obstacleEdgeThreshold: 0.1
+  fluidAirInteractionStrength: 0.5
   obstacles:
   - position: {x: 0, y: 0}
     size: {x: 0, y: 0}
@@ -390,13 +412,13 @@ MonoBehaviour:
   spawnRegions: []
   displayObstacle: 1
   useMaze: 1
-  obstacleFilePath: maze_2.csv
+  obstacleFilePath: maze_4.csv
   obstacleOverlapOffset: 0.15
   loadObstaclesFromFile: 1
-  reloadObstaclesOnStart: 1
-  displayObstacleHitbox: 1
+  reloadObstaclesOnStart: 0
+  displayObstacleHitbox: 0
   enableHorizontalBarriers: 1
-  barrierWidth: 20
+  barrierWidth: 10
   barrierHeight: 1
   barrierSpacing: 5
   barrierStartY: 25

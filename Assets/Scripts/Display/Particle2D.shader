@@ -23,6 +23,7 @@ Shader "Instanced/Particle2D" {
 			StructuredBuffer<float2> Positions2D;
 			StructuredBuffer<float2> Velocities;
 			StructuredBuffer<float2> DensityData;
+			StructuredBuffer<int> ParticleTypes;
 			float scale;
 			float4 colA;
 			Texture2D<float4> ColourMap;
@@ -31,6 +32,8 @@ Shader "Instanced/Particle2D" {
 			float _BlurRadius;
 			float _Softness;
 			float _GlowIntensity;
+			float4 fluidColor;
+			float4 airColor;
 
 			struct v2f
 			{
@@ -41,6 +44,7 @@ Shader "Instanced/Particle2D" {
 
 			v2f vert (appdata_full v, uint instanceID : SV_InstanceID)
 			{
+				int particleType = ParticleTypes[instanceID];
 				float speed = length(Velocities[instanceID]);
 				float speedT = saturate(speed / velocityMax);
 				float colT = speedT;
@@ -52,7 +56,16 @@ Shader "Instanced/Particle2D" {
 				v2f o;
 				o.uv = v.texcoord;
 				o.pos = UnityObjectToClipPos(objectVertPos);
-				o.colour = ColourMap.SampleLevel(linear_clamp_sampler, float2(colT, 0.5), 0);
+				
+				// Use specific colors based on particle type
+				if (particleType == 0) // Fluido
+				{
+					o.colour = ColourMap.SampleLevel(linear_clamp_sampler, float2(colT, 0.5), 0);
+				}
+				else // Aire
+				{
+					o.colour = airColor.rgb;
+				}
 
 				return o;
 			}
