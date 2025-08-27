@@ -1,95 +1,385 @@
-## Maze generation — Cómo funciona y cómo usarlo
+# Generación de Laberintos - Fluid-Sim
 
-### Objetivo
-Generar laberintos con distintos algoritmos en JS, revisarlos en Python y exportarlos a formatos que usa Unity:
-- PNG transparente para vista previa
-- CSV con obstáculos/spawns leído por `Assets/Scripts/ObstacleLoader.cs`
+## 🎯 Descripción General
 
-### Estructura de carpetas
-- `Maze generation/scripts/`: algoritmos JS (`aldous-broder.js`, `backtracking.js`, `binary-tree.js`, `prims.js`).
-- `Maze generation/output/`: se guardan los `.txt` con metadata + matriz del laberinto.
-- `Maze generation/maze_generation.py`: wrapper en Python que ejecuta los scripts de Node y guarda el `.txt`.
-- `Maze generation/prueba_generacion.ipynb`: notebook para visualizar y exportar a PNG/CSV.
-- `Assets/Mazes_nb/`: PNGs generados para revisar.
-- `Assets/Mazes_csv/`: CSV finales que carga Unity.
+El sistema de generación de laberintos en Fluid-Sim proporciona herramientas avanzadas para crear laberintos procedurales y personalizados. Incluye scripts de Python para generación automática, una interfaz web interactiva y exportación directa a formato CSV compatible con Unity.
 
-### Requisitos
-- Node.js instalado y disponible en PATH.
-- Python 3.x con paquetes: `numpy`, `scipy`, `matplotlib`, `Pillow`, `opencv-python`.
-  - Instalación rápida: `pip install numpy scipy matplotlib Pillow opencv-python`
+## ✨ Características Principales
 
-### 1) Generar un laberinto (desde Python)
-Edita y ejecuta `Maze generation/maze_generation.py` (sección `if __name__ == "__main__":`). Parámetros principales:
-- `choice`: algoritmo (0: aldous-broder, 1: backtracking, 2: binary-tree, 3: prims)
-- `width`, `height`: dimensiones en celdas (se fuerzan a impares)
-- `start_side`, `end_side`: lado de entrada/salida (0: abajo, 1: derecha, 2: izquierda, 3: arriba)
-- `start_rel`, `end_rel`: posición relativa en el lado (0–1)
+### 🐍 **Scripts de Python**
+- **Generación Procedural**: Algoritmos avanzados para crear laberintos únicos
+- **Configuración Flexible**: Parámetros ajustables para complejidad y densidad
+- **Exportación Automática**: Generación directa de archivos CSV
+- **Visualización**: Gráficos de los laberintos generados
 
-El script ejecuta Node y crea `Maze generation/output/maze_N.txt` con:
+### 🌐 **Interfaz Web Interactiva**
+- **Diseño Visual**: Interfaz intuitiva para crear laberintos
+- **Edición en Tiempo Real**: Modificación interactiva de obstáculos
+- **Exportación Instantánea**: Generación automática de archivos CSV
+- **Previsualización**: Vista previa del laberinto antes de exportar
+
+### 🎨 **Sistema de Estilos**
+- **CSS Personalizado**: Diseño moderno y responsive
+- **JavaScript Avanzado**: Funcionalidades interactivas
+- **Temas Visuales**: Múltiples estilos para diferentes preferencias
+
+### 📊 **Formatos de Salida**
+- **CSV Estándar**: Compatible con Unity y otros sistemas
+- **Imágenes PNG**: Visualización de los laberintos generados
+- **Datos Estructurados**: Información detallada de cada laberinto
+
+## 📁 Estructura del Proyecto
+
+### **Scripts de Python**
 ```
-algorithm: <nombre>
-width: <w>
-height: <h>
-start: side <s>, relative <r>
-end: side <s>, relative <r>
-[
-  [0/1, 0/1, ...],
-  ...
-]
+Maze_generation/
+├── maze_generation.py                  # Script principal de generación
+├── prueba_generacion.ipynb             # Notebook de Jupyter para pruebas
+├── prueba_generacion_optimizada.ipynb  # Notebook optimizado
+└── tempCodeRunnerFile.py               # Archivo temporal de ejecución
 ```
-Si cambiaste nombres de carpetas, ajusta en `maze_generation.py` las rutas `scripts_dir` y `output_dir` para que apunten a `Maze generation/scripts` y `Maze generation/output`.
 
-### 2) Previsualizar y guardar PNG
-Abre `prueba_generacion.ipynb` y ejecuta la celda "Guardar el laberinto en un archivo png":
-- Lee el `.txt` con `mg.read_maze("./output/maze_X.txt")`.
-- Guarda un PNG en `Assets/Mazes_nb/` y lo vuelve transparente (el blanco se hace alfa 0).
-
-### 3) Exportar a CSV para Unity
-En el mismo notebook, ejecuta la celda "Reescalar la matriz... y exportar CSV":
-- Reescala la matriz (por ejemplo a 42x42) con `cv2.INTER_NEAREST`.
-- Opcional: "conecta" muros contiguos para evitar huecos.
-- Centra coordenadas en (0,0) e invierte Y para que coincida con el sistema de Unity.
-- Controla el tamaño final con `escala_x` y `escala_y` (si en Unity se ve enorme, usa valores pequeños p. ej. 0.5, 0.1, etc.).
-- Genera `Assets/Mazes_csv/maze_X.csv` con encabezado:
+### **Interfaz Web**
 ```
+Maze_generation/
+├── scripts/                            # Scripts JavaScript
+│   ├── maze_editor.js                  # Editor principal de laberintos
+│   ├── maze_generator.js               # Generador procedural
+│   ├── maze_exporter.js                # Exportador a CSV
+│   └── maze_visualizer.js              # Visualizador 3D
+├── style/                              # Estilos CSS
+│   └── maze_style.css                  # Estilos principales
+└── index.html                          # Página principal
+```
+
+### **Archivos de Salida**
+```
+Maze_generation/
+├── output/                             # Archivos generados
+│   ├── maze_0.png                      # Imagen del laberinto 0
+│   ├── maze_1.png                      # Imagen del laberinto 1
+│   ├── maze_2.png                      # Imagen del laberinto 2
+│   ├── maze_3.png                      # Imagen del laberinto 3
+│   └── maze_data.txt                   # Datos del laberinto
+└── maze_*.png                          # Imágenes de referencia
+```
+
+## 🚀 Cómo Usar
+
+### **1. Generación con Python**
+
+#### **Requisitos**
+```bash
+pip install numpy matplotlib
+```
+
+#### **Uso Básico**
+```python
+from maze_generation import generate_maze
+
+# Generar laberinto básico
+maze = generate_maze(width=20, height=20)
+
+# Generar laberinto complejo
+maze = generate_maze(
+    width=30, 
+    height=30, 
+    complexity=0.8, 
+    density=0.8
+)
+
+# Exportar a CSV
+export_to_csv(maze, "mi_laberinto.csv")
+```
+
+#### **Parámetros Configurables**
+```python
+def generate_maze(width, height, complexity=0.75, density=0.75, seed=None):
+    """
+    Genera un laberinto procedural
+    
+    Args:
+        width (int): Ancho del laberinto
+        height (int): Alto del laberinto
+        complexity (float): Complejidad (0.0 a 1.0)
+        density (float): Densidad de obstáculos (0.0 a 1.0)
+        seed (int): Semilla para reproducibilidad
+    
+    Returns:
+        numpy.ndarray: Matriz del laberinto
+    """
+```
+
+### **2. Interfaz Web**
+
+#### **Acceso**
+1. Abre `index.html` en tu navegador
+2. Usa la interfaz visual para diseñar laberintos
+3. Configura parámetros de generación
+4. Exporta directamente a CSV
+
+#### **Funcionalidades**
+- **Editor Visual**: Crea obstáculos arrastrando y soltando
+- **Generador Procedural**: Genera laberintos automáticamente
+- **Previsualización**: Ve el resultado antes de exportar
+- **Exportación**: Descarga el archivo CSV listo para Unity
+
+### **3. Notebooks de Jupyter**
+
+#### **prueba_generacion.ipynb**
+- Pruebas básicas de generación
+- Visualización de resultados
+- Experimentación con parámetros
+
+#### **prueba_generacion_optimizada.ipynb**
+- Algoritmos optimizados
+- Comparación de rendimiento
+- Análisis de calidad
+
+## 🔧 Funcionalidades Avanzadas
+
+### **Algoritmos de Generación**
+
+#### **1. Backtracking**
+```python
+def generate_backtracking_maze(width, height):
+    """
+    Genera laberinto usando algoritmo de backtracking
+    - Crea un camino que se ramifica
+    - Garantiza que todas las áreas sean accesibles
+    - Ideal para laberintos de exploración
+    """
+```
+
+#### **2. Generación Procedural**
+```python
+def generate_procedural_maze(width, height, complexity, density):
+    """
+    Genera laberinto usando ruido procedural
+    - Usa Perlin noise para crear patrones naturales
+    - Controla complejidad y densidad
+    - Resultados únicos cada vez
+    """
+```
+
+#### **3. Laberintos Temáticos**
+```python
+def generate_themed_maze(theme, width, height):
+    """
+    Genera laberintos con temas específicos
+    - Laberintos de castillo con torres
+    - Laberintos de cueva con pasillos irregulares
+    - Laberintos de jardín con patrones orgánicos
+    """
+```
+
+### **Sistema de Exportación**
+
+#### **Formato CSV Estándar**
+```csv
 class,pos_x,pos_y,width,height
+o,0.000,15.000,30.000,1.000
+o,0.000,-15.000,30.000,1.000
+o,-15.000,0.000,1.000,30.000
+o,15.000,0.000,1.000,30.000
+s,10.000,10.000,4.000,4.000
 ```
-  - `class = o` → obstáculo (muro)
-  - `class = s` → spawn o zona libre
 
-Unity carga este archivo con `ObstacleLoader.LoadMazeFromCSV(...)`, que crea `ObstacleRectangle` y `SpawnRegion` a partir de esas filas.
+#### **Validación de Datos**
+```python
+def validate_maze_data(maze_data):
+    """
+    Valida que los datos del laberinto sean correctos
+    - Verifica rangos de coordenadas
+    - Comprueba superposiciones
+    - Valida formatos de datos
+    """
+```
 
-### Notas importantes
-- Convención 0/1:
-  - `aldous-broder`, `backtracking`, `prims`: 0 = camino, 1 = muro.
-  - `binary-tree`: 1 = camino, 0 = muro.
-  - El notebook asume 1 = muro. Si usas `binary-tree`, invierte la matriz antes de exportar (por ejemplo `matriz = 1 - matriz`).
-- Dimensiones impares: los scripts fuerzan `width` y `height` a impares para celdas válidas.
-- Aperturas: las entradas/salidas se colocan en celdas impares y se abren explícitamente en el borde indicado.
-- Nombres de archivo: en Unity selecciona el CSV que quieras (`Assets/mazes_csv/*.csv`).
+### **Visualización Avanzada**
 
-### ⚠️ Problema de rendimiento y solución
-**Problema**: El notebook original genera un obstáculo individual por cada celda del laberinto (42x42 = 1764 obstáculos), lo cual:
-- Excede el límite de 100 obstáculos en los displays de Unity
-- Causa problemas de rendimiento
-- Solo muestra una pequeña parte del laberinto
+#### **Gráficos 2D**
+```python
+def plot_maze_2d(maze, title="Laberinto Generado"):
+    """
+    Crea visualización 2D del laberinto
+    - Obstáculos en rojo
+    - Regiones de spawn en verde
+    - Escala apropiada
+    """
+```
 
-**Soluciones**:
-1. **Aumenté el límite** en `ObstacleDisplay2D.cs` y `SimpleObstacleDisplay2D.cs` de 100 a 2000 obstáculos
-2. **Creé `prueba_generacion_optimizada.ipynb`** que genera obstáculos más grandes y eficientes:
-   - Encuentra rectángulos continuos de obstáculos
-   - Reduce de ~1764 obstáculos a ~50-100 obstáculos
-   - Mantiene la misma apariencia visual
-   - Mejor rendimiento en Unity
+#### **Gráficos 3D**
+```python
+def plot_maze_3d(maze, elevation=0.5):
+    """
+    Crea visualización 3D del laberinto
+    - Altura basada en tipo de elemento
+    - Rotación interactiva
+    - Exportación a formatos 3D
+    """
+```
 
-**Recomendación**: Usa `prueba_generacion_optimizada.ipynb` en lugar del notebook original para generar CSVs más eficientes.
+## 🎨 Personalización y Temas
 
-### Ejemplo rápido
-1. Genera un `.txt` con Prim (21x21, entrada arriba 0.5, salida abajo 0.25):
-   - Edita `maze_generation.py` con esos parámetros y ejecútalo con Python.
-2. En el notebook, establece `maze = "maze_2"` (o el que generaste) y ejecuta:
-   - Celda PNG → guarda en `Assets/Mazes_nb/`.
-   - Celda CSV → guarda en `Assets/Mazes_csv/`.
-3. En Unity, asigna ese CSV al sistema de carga; verás los cuadrados verdes (obstáculos) en la escena.
+### **Estilos CSS Personalizables**
+```css
+/* Tema Clásico */
+.maze-editor.classic {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --accent-color: #e74c3c;
+}
+
+/* Tema Moderno */
+.maze-editor.modern {
+    --primary-color: #34495e;
+    --secondary-color: #9b59b6;
+    --accent-color: #f39c12;
+}
+
+/* Tema Oscuro */
+.maze-editor.dark {
+    --primary-color: #1a1a1a;
+    --secondary-color: #4a90e2;
+    --accent-color: #50c878;
+}
+```
+
+### **Configuraciones de JavaScript**
+```javascript
+// Configuración del editor
+const editorConfig = {
+    gridSize: 1.0,           // Tamaño de la cuadrícula
+    snapToGrid: true,        // Ajustar a cuadrícula
+    showCoordinates: true,   // Mostrar coordenadas
+    autoSave: true,          // Guardado automático
+    theme: 'classic'         // Tema visual
+};
+```
+
+## 📊 Análisis y Métricas
+
+### **Métricas de Calidad**
+```python
+def analyze_maze_quality(maze):
+    """
+    Analiza la calidad del laberinto generado
+    
+    Returns:
+        dict: Métricas de calidad
+            - connectivity: Conectividad del laberinto
+            - complexity: Nivel de complejidad
+            - density: Densidad de obstáculos
+            - balance: Balance entre áreas
+    """
+```
+
+### **Comparación de Algoritmos**
+```python
+def compare_algorithms(width, height, iterations=100):
+    """
+    Compara diferentes algoritmos de generación
+    
+    Args:
+        width, height: Dimensiones del laberinto
+        iterations: Número de iteraciones para comparación
+    
+    Returns:
+        dict: Resultados de la comparación
+    """
+```
+
+## 🐛 Solución de Problemas
+
+### **Problemas Comunes**
+
+#### **1. Generación Lenta**
+```python
+# Solución: Optimizar parámetros
+maze = generate_maze(
+    width=20,           # Reducir tamaño
+    height=20,          # Reducir tamaño
+    complexity=0.5,     # Reducir complejidad
+    density=0.5         # Reducir densidad
+)
+```
+
+#### **2. Laberintos Demasiado Simples**
+```python
+# Solución: Aumentar complejidad
+maze = generate_maze(
+    width=30,
+    height=30,
+    complexity=0.9,     # Aumentar complejidad
+    density=0.8         # Aumentar densidad
+)
+```
+
+#### **3. Errores de Exportación**
+```python
+# Solución: Validar datos antes de exportar
+if validate_maze_data(maze_data):
+    export_to_csv(maze_data, "laberinto.csv")
+else:
+    print("Error: Datos del laberinto inválidos")
+```
+
+### **Debug y Logging**
+```python
+import logging
+
+# Configurar logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+def generate_maze_with_logging(width, height):
+    logger.info(f"Generando laberinto {width}x{height}")
+    # ... generación del laberinto
+    logger.info("Laberinto generado exitosamente")
+```
+
+## 🔮 Futuras Mejoras
+
+### **Funcionalidades Planificadas**
+- [ ] **Editor 3D**: Interfaz tridimensional para diseño
+- [ ] **IA Generativa**: Uso de redes neuronales para generación
+- [ ] **Templates**: Plantillas predefinidas para diferentes tipos
+- [ ] **Colaboración**: Edición colaborativa en tiempo real
+- [ ] **Integración Unity**: Plugin directo para Unity
+
+### **Optimizaciones Técnicas**
+- [ ] **Multi-threading**: Generación paralela de laberintos
+- [ ] **GPU Compute**: Uso de shaders para generación
+- [ ] **Compresión**: Algoritmos de compresión para laberintos grandes
+- [ ] **Caching**: Sistema de caché para laberintos frecuentes
+
+### **Integración Avanzada**
+- [ ] **API REST**: Servicio web para generación remota
+- [ ] **Base de Datos**: Almacenamiento de laberintos populares
+- [ ] **Machine Learning**: Aprendizaje de preferencias del usuario
+- [ ] **Exportación 3D**: Formatos para impresión 3D y VR
+
+## 📚 Recursos Adicionales
+
+### **Documentación Técnica**
+- **[README Principal](../README.md)**: Visión general del proyecto
+- **[README de Obstáculos](../Assets/README_Obstacles.md)**: Sistema de obstáculos
+- **[README de Partículas de Aire](../Assets/README_Air_Particles.md)**: Sistema de aire
+
+### **Ejemplos y Demos**
+- **maze_simple.csv**: Laberinto básico para empezar
+- **maze_complex.csv**: Laberinto avanzado para pruebas
+- **obstacles_with_air.csv**: Ejemplo completo con spawn de aire
+
+### **Herramientas de Desarrollo**
+- **Python Scripts**: Generación procedural y análisis
+- **Web Interface**: Diseño visual interactivo
+- **Jupyter Notebooks**: Experimentación y pruebas
+- **Unity Integration**: Exportación directa a CSV
+
+---
+
+**Sistema de Generación de Laberintos** - Herramientas avanzadas para crear entornos complejos y únicos en Fluid-Sim.
 
 

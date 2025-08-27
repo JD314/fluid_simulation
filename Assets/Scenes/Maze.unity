@@ -297,8 +297,8 @@ MonoBehaviour:
     m_NumAlphaKeys: 2
   gradientResolution: 64
   velocityDisplayMax: 6.5
-  blurRadius: 3.02
-  softness: 1
+  blurRadius: 0
+  softness: 0
   glowIntensity: 2
 --- !u!114 &1978374365
 MonoBehaviour:
@@ -337,6 +337,7 @@ MonoBehaviour:
   collisionDamping: 0.95
   boundsSize: {x: 42, y: 180}
   fluidConfig:
+    physicsExpanded: 1
     gravity: -12
     targetDensity: 55
     pressureMultiplier: 500
@@ -344,34 +345,41 @@ MonoBehaviour:
     viscosityStrength: 0.06
     mass: 1
     compressibility: 1
-    particleScale: 0.15
+    visualExpanded: 0
+    particleScale: 0.25
     airParticlesInvisible: 0
-    particleCount: 10000
+    spawnExpanded: 1
+    particleCount: 30000
     initialVelocity: {x: 0, y: 0}
     jitterStrength: 0.1
+    optimizationExpanded: 0
     yMin: -1000
     yMax: 1000
     showAirBounds: 0
   airConfig:
+    physicsExpanded: 1
     gravity: 0
     targetDensity: 15
-    pressureMultiplier: 200
+    pressureMultiplier: 150
     nearPressureMultiplier: 8
-    viscosityStrength: 0.03
-    mass: 0.3
-    compressibility: 10
-    particleScale: 0.1
+    viscosityStrength: 0.01
+    mass: 0.01
+    compressibility: 15
+    visualExpanded: 0
+    particleScale: 0.08
     airParticlesInvisible: 0
+    spawnExpanded: 1
     particleCount: 12000
     initialVelocity: {x: 0, y: 0}
     jitterStrength: 0.05
+    optimizationExpanded: 0
     yMin: -22
     yMax: 22
-    showAirBounds: 1
+    showAirBounds: 0
   interactionRadius: 2
   interactionStrength: 90
   obstacleEdgeThreshold: 0.1
-  fluidAirInteractionStrength: 0.5
+  fluidAirInteractionStrength: 2
   enableAirCleanup: 1
   airCleanupFrequency: 30
   maxBatchSize: 50

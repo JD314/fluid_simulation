@@ -88,3 +88,23 @@ El sistema de visualización ha sido actualizado para soportar múltiples obstá
 - El sistema mantiene compatibilidad con el sistema legacy de obstáculos
 - La lista de obstáculos está oculta en el inspector para una interfaz más limpia
 - La visualización se actualiza automáticamente cuando cambias entre sistemas
+
+### **🔧 Configuración Rápida**
+1. **Habilita "Usar Laberinto"** en el inspector
+2. **Configura "Archivo de Obstáculos"** (ej: `mazes_csv/mi_laberinto.csv`)
+3. **Ejecuta la simulación** - ¡El laberinto se carga automáticamente!
+
+### **🎯 Configuración Rápida con Selector de Archivos**
+1. **Habilita "Usar Laberinto"** en el inspector
+2. **Haz clic en "📁 Seleccionar"** para abrir el selector de archivos
+3. **Navega y selecciona** tu archivo CSV desde la carpeta `mazes_csv/`
+4. **El sistema automáticamente** convierte la ruta y carga el laberinto
+5. **Ejecuta la simulación** - ¡El laberinto se carga automáticamente!
+
+### **📁 Selector de Archivos Integrado**
+**¡Nueva funcionalidad!** El inspector de Unity ahora incluye un **botón "📁 Seleccionar"** que:
+- **Abre el selector de archivos** nativo del sistema
+- **Filtra solo archivos CSV** para facilitar la selección
+- **Convierte automáticamente** las rutas absolutas a relativas
+- **Sugiere la carpeta `mazes_csv/`** como ubicación por defecto
+- **Actualiza el campo** "Archivo de Obstáculos" automáticamente

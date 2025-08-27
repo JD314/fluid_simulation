@@ -32,6 +32,7 @@ public struct SpawnRegion
 public struct ParticleTypeConfig
 {
     [Header("Física")]
+    [SerializeField] private bool physicsExpanded;
     public float gravity;
     public float targetDensity;
     public float pressureMultiplier;
@@ -41,17 +42,20 @@ public struct ParticleTypeConfig
     public float compressibility;
     
     [Header("Visual")]
+    [SerializeField] private bool visualExpanded;
     [Range(0f, 2f)]
     public float particleScale;
     [Tooltip("Si está marcado, las partículas de aire serán invisibles")]
     public bool airParticlesInvisible;
     
     [Header("Spawn")]
+    [SerializeField] private bool spawnExpanded;
     public int particleCount;
     public Vector2 initialVelocity;
     public float jitterStrength;
     
     [Header("Optimización (Solo Aire)")]
+    [SerializeField] private bool optimizationExpanded;
     [Tooltip("Límite mínimo en Y para partículas de aire (se eliminan si están por debajo)")]
     public float yMin;
     [Tooltip("Límite máximo en Y para partículas de aire (se eliminan si están por encima)")]
@@ -59,48 +63,91 @@ public struct ParticleTypeConfig
     [Tooltip("Si está marcado, se muestran los límites de optimización del aire")]
     public bool showAirBounds;
     
-    public static ParticleTypeConfig DefaultFluid()
+    // Propiedades para acceder a los estados de expansión
+    public bool PhysicsExpanded => physicsExpanded;
+    public bool VisualExpanded => visualExpanded;
+    public bool SpawnExpanded => spawnExpanded;
+    public bool OptimizationExpanded => optimizationExpanded;
+    
+    // Métodos para cambiar el estado de expansión
+    public void SetPhysicsExpanded(bool expanded) => physicsExpanded = expanded;
+    public void SetVisualExpanded(bool expanded) => visualExpanded = expanded;
+    public void SetSpawnExpanded(bool expanded) => spawnExpanded = expanded;
+    public void SetOptimizationExpanded(bool expanded) => optimizationExpanded = expanded;
+    
+    // Constructor explícito para inicializar los campos
+    public ParticleTypeConfig(bool initializeDefaults = true)
     {
-        return new ParticleTypeConfig
-        {
-            gravity = -12.0f,
-            targetDensity = 55f,
-            pressureMultiplier = 500f,
-            nearPressureMultiplier = 18f,
-            viscosityStrength = 0.06f,
-            mass = 1.0f,
-            compressibility = 1.0f,
-            particleScale = 1.0f,
-            airParticlesInvisible = false,
-            particleCount = 800,
-            initialVelocity = Vector2.zero,
-            jitterStrength = 0.1f,
-            yMin = 0f, // No se usa para fluido
-            yMax = 0f, // No se usa para fluido
-            showAirBounds = false
-        };
+        // Inicializar campos de expansión
+        physicsExpanded = true;
+        visualExpanded = true;
+        spawnExpanded = true;
+        optimizationExpanded = true;
+        
+        // Inicializar campos de física
+        gravity = 0f;
+        targetDensity = 0f;
+        pressureMultiplier = 0f;
+        nearPressureMultiplier = 0f;
+        viscosityStrength = 0f;
+        mass = 0f;
+        compressibility = 0f;
+        
+        // Inicializar campos visuales
+        particleScale = 1f;
+        airParticlesInvisible = false;
+        
+        // Inicializar campos de spawn
+        particleCount = 0;
+        initialVelocity = Vector2.zero;
+        jitterStrength = 0f;
+        
+        // Inicializar campos de optimización
+        yMin = -1000f;
+        yMax = 1000f;
+        showAirBounds = false;
     }
     
+    public static ParticleTypeConfig DefaultFluid()
+    {
+        var config = new ParticleTypeConfig();
+        config.gravity = -12.0f;
+        config.targetDensity = 55f;
+        config.pressureMultiplier = 500f;
+        config.nearPressureMultiplier = 18f;
+        config.viscosityStrength = 0.06f;
+        config.mass = 1.0f;
+        config.compressibility = 1.0f;
+        config.particleScale = 1.0f;
+        config.airParticlesInvisible = false;
+        config.particleCount = 800;
+        config.initialVelocity = Vector2.zero;
+        config.jitterStrength = 0.1f;
+        config.yMin = 0f; // No se usa para fluido
+        config.yMax = 0f; // No se usa para fluido
+        config.showAirBounds = false;
+        return config;
+    }
+
     public static ParticleTypeConfig DefaultAir()
     {
-        return new ParticleTypeConfig
-        {
-            gravity = 0.0f, // Sin gravedad para el aire
-            targetDensity = 8f, // Mucho menos denso que el fluido
-            pressureMultiplier = 150f, // Menos presión
-            nearPressureMultiplier = 6f,
-            viscosityStrength = 0.02f, // Menos viscoso
-            mass = 0.2f, // Más ligero
-            compressibility = 3.0f, // Más compresible
-            particleScale = 0.6f,
-            airParticlesInvisible = false,
-            particleCount = 300,
-            initialVelocity = Vector2.zero,
-            jitterStrength = 0.05f,
-            yMin = -50f, // Límite mínimo por defecto
-            yMax = 50f,  // Límite máximo por defecto
-            showAirBounds = false
-        };
+        var config = new ParticleTypeConfig();
+        config.gravity = 0.0f; // Sin gravedad para el aire
+        config.targetDensity = 8f; // Mucho menos denso que el fluido
+        config.pressureMultiplier = 150f; // Menos presión
+        config.nearPressureMultiplier = 6f;
+        config.viscosityStrength = 0.02f; // Menos viscoso
+        config.mass = 0.2f; // Más ligero
+        config.compressibility = 3.0f; // Más compresible
+        config.particleScale = 0.6f;
+        config.airParticlesInvisible = false;
+        config.particleCount = 300;
+        config.initialVelocity = Vector2.zero;
+        config.jitterStrength = 0.05f;
+        config.yMin = -50f; // Límite mínimo por defecto
+        config.yMax = 50f;  // Límite máximo por defecto
+        config.showAirBounds = false;
+        return config;
     }
 }
 
@@ -117,8 +164,8 @@ public class Simulation2D : MonoBehaviour
     public Vector2 boundsSize;
     
     [Header("Particle Types")]
-    public ParticleTypeConfig fluidConfig = ParticleTypeConfig.DefaultFluid();
-    public ParticleTypeConfig airConfig = ParticleTypeConfig.DefaultAir();
+    public ParticleTypeConfig fluidConfig;
+    public ParticleTypeConfig airConfig;
     
     [Header("Interaction Settings")]
     public float interactionRadius;
@@ -193,6 +240,16 @@ public class Simulation2D : MonoBehaviour
 
     void Awake()
     {
+        // Inicializar configuraciones por defecto si no están configuradas
+        if (fluidConfig.particleCount == 0)
+        {
+            fluidConfig = ParticleTypeConfig.DefaultFluid();
+        }
+        if (airConfig.particleCount == 0)
+        {
+            airConfig = ParticleTypeConfig.DefaultAir();
+        }
+        
         // Cargar laberinto (obstáculos y spawns) desde archivo si está habilitado
         if (useMaze && loadObstaclesFromFile)
         {
@@ -229,7 +286,7 @@ public class Simulation2D : MonoBehaviour
             Debug.Log($"Barras horizontales por defecto agregadas en Y={barrierStartY}, {barrierStartY + barrierSpacing}, {barrierStartY + barrierSpacing * 2}");
         }
     }
-
+    
     void Start()
     {
         Debug.Log("Controls: Space = Play/Pause, R = Reset, O = Reload Obstacles, P = Save Obstacles, LMB = Attract, RMB = Repel");
