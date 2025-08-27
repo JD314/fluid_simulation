@@ -24,8 +24,15 @@ public class AirParticleConfigExample : MonoBehaviour
         public float mass;
         public float compressibility;
         public int particleCount;
-        public Color particleColor;
+
         public float particleScale;
+        [Tooltip("Si está marcado, las partículas de aire serán invisibles")]
+        public bool airParticlesInvisible;
+        
+        [Header("Optimización")]
+        public float yMin;
+        public float yMax;
+        public bool showAirBounds;
     }
     
     [Header("Presets de Aire")]
@@ -42,8 +49,11 @@ public class AirParticleConfigExample : MonoBehaviour
             mass = 0.1f,
             compressibility = 4.0f,
             particleCount = 200,
-            particleColor = Color.white,
-            particleScale = 0.5f
+            particleScale = 0.5f,
+            airParticlesInvisible = false,
+            yMin = -30f,
+            yMax = 30f,
+            showAirBounds = false
         },
         new AirConfigPreset
         {
@@ -56,8 +66,11 @@ public class AirParticleConfigExample : MonoBehaviour
             mass = 0.2f,
             compressibility = 3.0f,
             particleCount = 300,
-            particleColor = Color.white,
-            particleScale = 0.6f
+            particleScale = 0.6f,
+            airParticlesInvisible = false,
+            yMin = -40f,
+            yMax = 40f,
+            showAirBounds = false
         },
         new AirConfigPreset
         {
@@ -70,8 +83,45 @@ public class AirParticleConfigExample : MonoBehaviour
             mass = 0.3f,
             compressibility = 2.0f,
             particleCount = 400,
-            particleColor = Color.white,
-            particleScale = 0.7f
+            particleScale = 0.7f,
+            airParticlesInvisible = false,
+            yMin = -50f,
+            yMax = 50f,
+            showAirBounds = false
+        },
+        new AirConfigPreset
+        {
+            name = "Aire Invisible",
+            gravity = 0.0f,
+            targetDensity = 8f,
+            pressureMultiplier = 150f,
+            nearPressureMultiplier = 6f,
+            viscosityStrength = 0.02f,
+            mass = 0.2f,
+            compressibility = 3.0f,
+            particleCount = 300,
+            particleScale = 0.6f,
+            airParticlesInvisible = true,
+            yMin = -40f,
+            yMax = 40f,
+            showAirBounds = true
+        },
+        new AirConfigPreset
+        {
+            name = "Aire Optimizado",
+            gravity = 0.0f,
+            targetDensity = 8f,
+            pressureMultiplier = 150f,
+            nearPressureMultiplier = 6f,
+            viscosityStrength = 0.02f,
+            mass = 0.2f,
+            compressibility = 3.0f,
+            particleCount = 300,
+            particleScale = 0.6f,
+            airParticlesInvisible = false,
+            yMin = -25f,
+            yMax = 25f,
+            showAirBounds = true
         }
     };
     
@@ -124,8 +174,14 @@ public class AirParticleConfigExample : MonoBehaviour
         simulation.airConfig.mass = preset.mass;
         simulation.airConfig.compressibility = preset.compressibility;
         simulation.airConfig.particleCount = preset.particleCount;
-        simulation.airConfig.particleColor = preset.particleColor;
         simulation.airConfig.particleScale = preset.particleScale;
+        simulation.airConfig.airParticlesInvisible = preset.airParticlesInvisible;
+        simulation.airConfig.yMin = preset.yMin;
+        simulation.airConfig.yMax = preset.yMax;
+        simulation.airConfig.showAirBounds = preset.showAirBounds;
+        
+        // Trigger update in simulation
+        simulation.UpdateParticleDisplay();
         
         Debug.Log($"Preset '{preset.name}' aplicado al aire");
     }
@@ -155,6 +211,24 @@ public class AirParticleConfigExample : MonoBehaviour
     public void ApplyDenseAir()
     {
         ApplyAirPreset(2);
+    }
+    
+    /// <summary>
+    /// Aplica el preset de aire invisible
+    /// </summary>
+    [ContextMenu("Aplicar Aire Invisible")]
+    public void ApplyInvisibleAir()
+    {
+        ApplyAirPreset(3);
+    }
+    
+    /// <summary>
+    /// Aplica el preset de aire optimizado
+    /// </summary>
+    [ContextMenu("Aplicar Aire Optimizado")]
+    public void ApplyOptimizedAir()
+    {
+        ApplyAirPreset(4);
     }
     
     /// <summary>
@@ -193,6 +267,22 @@ public class AirParticleConfigExample : MonoBehaviour
         {
             simulation.fluidAirInteractionStrength = 0.3f;
             Debug.Log("Interacción fluido-aire configurada como media (0.3)");
+        }
+    }
+    
+    /// <summary>
+    /// Alterna entre aire visible e invisible
+    /// </summary>
+    [ContextMenu("Alternar Visibilidad del Aire")]
+    public void ToggleAirVisibility()
+    {
+        if (simulation != null)
+        {
+            simulation.airConfig.airParticlesInvisible = !simulation.airConfig.airParticlesInvisible;
+            string status = simulation.airConfig.airParticlesInvisible ? "invisible" : "visible";
+            Debug.Log($"Aire configurado como {status}");
+            // Trigger update in simulation
+            simulation.UpdateParticleDisplay();
         }
     }
     

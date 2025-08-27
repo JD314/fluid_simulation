@@ -19,10 +19,13 @@ public class ParticleDisplay2D : MonoBehaviour
 	Bounds bounds;
 	Texture2D gradientTexture;
 	bool needsUpdate;
-
+	
+	// Reference to simulation to get particle scales
+	private Simulation2D simulation;
 
 	public void Init(Simulation2D sim)
 	{
+		simulation = sim;
 		material = new Material(shader);
 		material.SetBuffer("Positions2D", sim.positionBuffer);
 		material.SetBuffer("Velocities", sim.velocityBuffer);
@@ -52,7 +55,20 @@ public class ParticleDisplay2D : MonoBehaviour
 			TextureFromGradient(ref gradientTexture, gradientResolution, colourMap);
 			material.SetTexture("ColourMap", gradientTexture);
 
-			material.SetFloat("scale", scale);
+			// Set separate scales for fluid and air particles
+			if (simulation != null)
+			{
+				material.SetFloat("fluidParticleScale", simulation.fluidConfig.particleScale);
+				float effectiveAirScale = simulation.airConfig.airParticlesInvisible ? 0f : simulation.airConfig.particleScale;
+				material.SetFloat("airParticleScale", effectiveAirScale);
+			}
+			else
+			{
+				// Fallback to single scale if no simulation reference
+				material.SetFloat("fluidParticleScale", scale);
+				material.SetFloat("airParticleScale", scale);
+			}
+			
 			material.SetFloat("velocityMax", velocityDisplayMax);
 			
 			// Set particle rendering parameters
@@ -66,6 +82,14 @@ public class ParticleDisplay2D : MonoBehaviour
 		}
 		
 
+	}
+	
+	/// <summary>
+	/// Force update of particle scales (useful when air particles visibility changes)
+	/// </summary>
+	public void ForceUpdateScales()
+	{
+		needsUpdate = true;
 	}
 
 	public static void TextureFromGradient(ref Texture2D texture, int width, Gradient gradient, FilterMode filterMode = FilterMode.Bilinear)

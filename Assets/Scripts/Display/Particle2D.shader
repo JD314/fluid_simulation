@@ -24,7 +24,8 @@ Shader "Instanced/Particle2D" {
 			StructuredBuffer<float2> Velocities;
 			StructuredBuffer<float2> DensityData;
 			StructuredBuffer<int> ParticleTypes;
-			float scale;
+			float fluidParticleScale;
+			float airParticleScale;
 			float4 colA;
 			Texture2D<float4> ColourMap;
 			SamplerState linear_clamp_sampler;
@@ -49,8 +50,31 @@ Shader "Instanced/Particle2D" {
 				float speedT = saturate(speed / velocityMax);
 				float colT = speedT;
 				
+				// Skip rendering if particle is inactive (type -1)
+				if (particleType == -1)
+				{
+					v2f o;
+					o.uv = v.texcoord;
+					o.pos = float4(0, 0, 0, 0); // Move to far away position
+					o.colour = float3(0, 0, 0);
+					return o;
+				}
+				
+				// Get the appropriate scale based on particle type
+				float particleScale = (particleType == 0) ? fluidParticleScale : airParticleScale;
+				
+				// Skip rendering if scale is 0 (invisible particles)
+				if (particleScale <= 0.0)
+				{
+					v2f o;
+					o.uv = v.texcoord;
+					o.pos = float4(0, 0, 0, 0); // Move to far away position
+					o.colour = float3(0, 0, 0);
+					return o;
+				}
+				
 				float3 centreWorld = float3(Positions2D[instanceID], 0);
-				float3 worldVertPos = centreWorld + mul(unity_ObjectToWorld, v.vertex * scale);
+				float3 worldVertPos = centreWorld + mul(unity_ObjectToWorld, v.vertex * particleScale);
 				float3 objectVertPos = mul(unity_WorldToObject, float4(worldVertPos.xyz, 1));
 
 				v2f o;

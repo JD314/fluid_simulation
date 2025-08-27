@@ -344,11 +344,14 @@ MonoBehaviour:
     viscosityStrength: 0.06
     mass: 1
     compressibility: 1
-    particleColor: {r: 0, g: 1, b: 1, a: 1}
-    particleScale: 1
+    particleScale: 0.15
+    airParticlesInvisible: 0
     particleCount: 10000
     initialVelocity: {x: 0, y: 0}
     jitterStrength: 0.1
+    yMin: -1000
+    yMax: 1000
+    showAirBounds: 0
   airConfig:
     gravity: 0
     targetDensity: 15
@@ -357,15 +360,21 @@ MonoBehaviour:
     viscosityStrength: 0.03
     mass: 0.3
     compressibility: 10
-    particleColor: {r: 1, g: 0.023584902, b: 0.023584902, a: 1}
-    particleScale: 0.8
+    particleScale: 0.1
+    airParticlesInvisible: 0
     particleCount: 12000
     initialVelocity: {x: 0, y: 0}
     jitterStrength: 0.05
+    yMin: -22
+    yMax: 22
+    showAirBounds: 1
   interactionRadius: 2
   interactionStrength: 90
   obstacleEdgeThreshold: 0.1
   fluidAirInteractionStrength: 0.5
+  enableAirCleanup: 1
+  airCleanupFrequency: 30
+  maxBatchSize: 50
   obstacles:
   - position: {x: 0, y: 0}
     size: {x: 0, y: 0}
@@ -425,6 +434,7 @@ MonoBehaviour:
   compute: {fileID: 7200000, guid: 1c77ce8de78fddb419ed2d15cae41af0, type: 3}
   spawner: {fileID: 1978374365}
   display: {fileID: 1978374364}
+  isPaused: 0
 --- !u!114 &1978374367
 MonoBehaviour:
   m_ObjectHideFlags: 0

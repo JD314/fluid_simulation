@@ -41,13 +41,23 @@ public struct ParticleTypeConfig
     public float compressibility;
     
     [Header("Visual")]
-    public Color particleColor;
+    [Range(0f, 2f)]
     public float particleScale;
+    [Tooltip("Si está marcado, las partículas de aire serán invisibles")]
+    public bool airParticlesInvisible;
     
     [Header("Spawn")]
     public int particleCount;
     public Vector2 initialVelocity;
     public float jitterStrength;
+    
+    [Header("Optimización (Solo Aire)")]
+    [Tooltip("Límite mínimo en Y para partículas de aire (se eliminan si están por debajo)")]
+    public float yMin;
+    [Tooltip("Límite máximo en Y para partículas de aire (se eliminan si están por encima)")]
+    public float yMax;
+    [Tooltip("Si está marcado, se muestran los límites de optimización del aire")]
+    public bool showAirBounds;
     
     public static ParticleTypeConfig DefaultFluid()
     {
@@ -60,11 +70,14 @@ public struct ParticleTypeConfig
             viscosityStrength = 0.06f,
             mass = 1.0f,
             compressibility = 1.0f,
-            particleColor = Color.cyan,
             particleScale = 1.0f,
+            airParticlesInvisible = false,
             particleCount = 800,
             initialVelocity = Vector2.zero,
-            jitterStrength = 0.1f
+            jitterStrength = 0.1f,
+            yMin = 0f, // No se usa para fluido
+            yMax = 0f, // No se usa para fluido
+            showAirBounds = false
         };
     }
     
@@ -79,11 +92,14 @@ public struct ParticleTypeConfig
             viscosityStrength = 0.02f, // Menos viscoso
             mass = 0.2f, // Más ligero
             compressibility = 3.0f, // Más compresible
-            particleColor = Color.white,
             particleScale = 0.6f,
+            airParticlesInvisible = false,
             particleCount = 300,
             initialVelocity = Vector2.zero,
-            jitterStrength = 0.05f
+            jitterStrength = 0.05f,
+            yMin = -50f, // Límite mínimo por defecto
+            yMax = 50f,  // Límite máximo por defecto
+            showAirBounds = false
         };
     }
 }
@@ -109,6 +125,14 @@ public class Simulation2D : MonoBehaviour
     public float interactionStrength;
     public float obstacleEdgeThreshold = 0.1f; // Threshold for particles to stick to obstacle edges
     public float fluidAirInteractionStrength = 0.3f; // Strength of interaction between fluid and air particles
+    
+    [Header("Optimization Settings")]
+    [Tooltip("Si está habilitado, se limpian automáticamente las partículas de aire fuera de límites")]
+    public bool enableAirCleanup = true;
+    [Tooltip("Frecuencia de limpieza de partículas de aire (en frames)")]
+    public int airCleanupFrequency = 30;
+    [Tooltip("Número máximo de partículas a procesar por lote de limpieza")]
+    public int maxBatchSize = 50;
     
 
     [Header("Maze")]
@@ -159,7 +183,7 @@ public class Simulation2D : MonoBehaviour
     const int updatePositionKernel = 5;
 
     // State
-    bool isPaused;
+    public bool isPaused;
     ParticleSpawner.ParticleSpawnData spawnData;
     bool pauseNextFrame;
 
@@ -256,6 +280,9 @@ public class Simulation2D : MonoBehaviour
 
         // Init display
         display.Init(this);
+        
+        // Ensure particle display gets initial scales
+        UpdateParticleDisplay();
     }
 
     void FixedUpdate()
@@ -309,7 +336,12 @@ public class Simulation2D : MonoBehaviour
         ComputeHelper.Dispatch(compute, numParticles, kernelIndex: pressureKernel);
         ComputeHelper.Dispatch(compute, numParticles, kernelIndex: viscosityKernel);
         ComputeHelper.Dispatch(compute, numParticles, kernelIndex: updatePositionKernel);
-
+        
+        // Limpiar partículas de aire fuera de límites (cada cierto número de frames para optimización)
+        if (enableAirCleanup && Time.frameCount % airCleanupFrequency == 0)
+        {
+            SafeCleanupAirParticles(); // Usar limpieza segura que marca partículas como inactivas
+        }
     }
 
     void UpdateSettings(float deltaTime)
@@ -338,6 +370,10 @@ public class Simulation2D : MonoBehaviour
         compute.SetFloat("airViscosityStrength", airConfig.viscosityStrength);
         compute.SetFloat("airMass", airConfig.mass);
         compute.SetFloat("airCompressibility", airConfig.compressibility);
+        
+        // Ajustar escala del aire basado en el checkbox de invisibilidad
+        float effectiveAirScale = airConfig.airParticlesInvisible ? 0f : airConfig.particleScale;
+        compute.SetFloat("airParticleScale", effectiveAirScale);
         
         // Update obstacle system (both maze and custom obstacles)
         if (obstacles.Count > 0)
@@ -588,6 +624,12 @@ public class Simulation2D : MonoBehaviour
         {
             CancelInvoke("DelayedRegenerateParticles");
             Invoke("DelayedRegenerateParticles", 0.1f);
+        }
+        
+        // Actualizar la visualización de partículas si se cambia la visibilidad del aire
+        if (Application.isPlaying)
+        {
+            UpdateParticleDisplay();
         }
     }
     
@@ -930,6 +972,451 @@ public class Simulation2D : MonoBehaviour
 
     
     /// <summary>
+    /// Hace las partículas de aire invisibles
+    /// </summary>
+    [ContextMenu("Hacer Aire Invisible")]
+    public void MakeAirInvisible()
+    {
+        airConfig.airParticlesInvisible = true;
+        Debug.Log("Partículas de aire configuradas como invisibles");
+        UpdateParticleDisplay();
+    }
+    
+    /// <summary>
+    /// Hace las partículas de aire visibles
+    /// </summary>
+    [ContextMenu("Hacer Aire Visible")]
+    public void MakeAirVisible()
+    {
+        airConfig.airParticlesInvisible = false;
+        Debug.Log("Partículas de aire configuradas como visibles");
+        UpdateParticleDisplay();
+    }
+    
+    /// <summary>
+    /// Alterna entre aire visible e invisible
+    /// </summary>
+    [ContextMenu("Alternar Visibilidad del Aire")]
+    public void ToggleAirVisibility()
+    {
+        airConfig.airParticlesInvisible = !airConfig.airParticlesInvisible;
+        string status = airConfig.airParticlesInvisible ? "invisible" : "visible";
+        Debug.Log($"Aire configurado como {status}");
+        UpdateParticleDisplay();
+    }
+    
+    /// <summary>
+    /// Actualiza la visualización de partículas cuando cambia la configuración
+    /// </summary>
+    public void UpdateParticleDisplay()
+    {
+        var particleDisplay = FindObjectOfType<ParticleDisplay2D>();
+        if (particleDisplay != null)
+        {
+            particleDisplay.ForceUpdateScales();
+        }
+    }
+    
+    /// <summary>
+    /// Elimina partículas de aire que estén fuera de los límites Y configurados
+    /// </summary>
+    public void CleanupAirParticles()
+    {
+        if (!Application.isPlaying || typeBuffer == null || positionBuffer == null)
+            return;
+            
+        try
+        {
+            // Obtener datos actuales de todos los buffers
+            float2[] positions = new float2[numParticles];
+            float2[] velocities = new float2[numParticles];
+            float2[] densities = new float2[numParticles];
+            int[] types = new int[numParticles];
+            float[] masses = new float[numParticles];
+            
+            positionBuffer.GetData(positions);
+            velocityBuffer.GetData(velocities);
+            densityBuffer.GetData(densities);
+            typeBuffer.GetData(types);
+            massBuffer.GetData(masses);
+            
+            // Contar partículas de aire a eliminar
+            int airParticlesToRemove = 0;
+            for (int i = 0; i < numParticles; i++)
+            {
+                if (types[i] == 1) // Partícula de aire
+                {
+                    if (positions[i].y < airConfig.yMin || positions[i].y > airConfig.yMax)
+                    {
+                        airParticlesToRemove++;
+                    }
+                }
+            }
+            
+            if (airParticlesToRemove > 0)
+            {
+                Debug.Log($"Eliminando {airParticlesToRemove} partículas de aire fuera de límites (Y: {airConfig.yMin} a {airConfig.yMax})");
+                
+                // Crear nuevos arrays sin las partículas eliminadas
+                int newNumParticles = numParticles - airParticlesToRemove;
+                float2[] newPositions = new float2[newNumParticles];
+                float2[] newVelocities = new float2[newNumParticles];
+                float2[] newDensities = new float2[newNumParticles];
+                int[] newTypes = new int[newNumParticles];
+                float[] newMasses = new float[newNumParticles];
+                
+                int newIndex = 0;
+                for (int i = 0; i < numParticles; i++)
+                {
+                    if (types[i] == 0 || // Mantener partículas de fluido
+                        (types[i] == 1 && positions[i].y >= airConfig.yMin && positions[i].y <= airConfig.yMax)) // Mantener aire dentro de límites
+                    {
+                        newPositions[newIndex] = positions[i];
+                        newVelocities[newIndex] = velocities[i];
+                        newDensities[newIndex] = densities[i];
+                        newTypes[newIndex] = types[i];
+                        newMasses[newIndex] = masses[i];
+                        newIndex++;
+                    }
+                }
+                
+                // Verificar que se copiaron todas las partículas correctamente
+                if (newIndex != newNumParticles)
+                {
+                    Debug.LogError($"Error en la limpieza: se esperaban {newNumParticles} partículas pero se copiaron {newIndex}");
+                    return;
+                }
+                
+                // Actualizar contadores
+                numAirParticles -= airParticlesToRemove;
+                numParticles = newNumParticles;
+                
+                // Actualizar buffers
+                positionBuffer.SetData(newPositions);
+                velocityBuffer.SetData(newVelocities);
+                densityBuffer.SetData(newDensities);
+                typeBuffer.SetData(newTypes);
+                massBuffer.SetData(newMasses);
+                
+                // Actualizar compute shader
+                compute.SetInt("numParticles", numParticles);
+                compute.SetInt("numAirParticles", numAirParticles);
+                
+                Debug.Log($"Limpieza completada. Nuevo total: {numParticles} partículas ({numFluidParticles} fluido, {numAirParticles} aire)");
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Error durante la limpieza de partículas de aire: {e.Message}");
+            Debug.LogError($"Stack trace: {e.StackTrace}");
+        }
+    }
+    
+    /// <summary>
+    /// Limpia manualmente las partículas de aire fuera de límites
+    /// </summary>
+    [ContextMenu("Limpiar Partículas de Aire Fuera de Límites")]
+    public void ManualCleanupAirParticles()
+    {
+        CleanupAirParticles();
+    }
+    
+    /// <summary>
+    /// Reactiva partículas de aire inactivas para mantener el número configurado
+    /// </summary>
+    [ContextMenu("Reactivar Partículas de Aire")]
+    public void ReactivateAirParticles()
+    {
+        if (!Application.isPlaying)
+            return;
+            
+        try
+        {
+            int[] types = new int[numParticles];
+            float2[] positions = new float2[numParticles];
+            typeBuffer.GetData(types);
+            positionBuffer.GetData(positions);
+            
+            int reactivatedCount = 0;
+            var rng = new Unity.Mathematics.Random((uint)Time.frameCount);
+            
+            // Reactivar partículas inactivas (tipo -1) hasta alcanzar el número configurado
+            for (int i = 0; i < numParticles && reactivatedCount < airConfig.particleCount - numAirParticles; i++)
+            {
+                if (types[i] == -1) // Partícula inactiva
+                {
+                    // Reactivar como partícula de aire
+                    types[i] = 1;
+                    
+                    // Posicionar en una región de spawn válida
+                    if (spawnRegions.Count > 0)
+                    {
+                        var spawnRegion = spawnRegions[reactivatedCount % spawnRegions.Count];
+                        float x = spawnRegion.position.x + (rng.NextFloat() - 0.5f) * spawnRegion.size.x;
+                        float y = spawnRegion.position.y + (rng.NextFloat() - 0.5f) * spawnRegion.size.y;
+                        positions[i] = new float2(x, y);
+                    }
+                    else
+                    {
+                        // Región por defecto
+                        float x = (rng.NextFloat() - 0.5f) * 10f;
+                        float y = 20f + (rng.NextFloat() - 0.5f) * 5f;
+                        positions[i] = new float2(x, y);
+                    }
+                    
+                    reactivatedCount++;
+                }
+            }
+            
+            if (reactivatedCount > 0)
+            {
+                Debug.Log($"Reactivadas {reactivatedCount} partículas de aire");
+                
+                // Actualizar buffers
+                typeBuffer.SetData(types);
+                positionBuffer.SetData(positions);
+                
+                // Actualizar contador
+                numAirParticles += reactivatedCount;
+                compute.SetInt("numAirParticles", numAirParticles);
+                
+                // Actualizar display
+                UpdateParticleDisplay();
+                
+                Debug.Log($"Reactivación completada. Partículas de aire activas: {numAirParticles}");
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Error durante la reactivación: {e.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// Regenera partículas de aire para mantener el número configurado
+    /// </summary>
+    [ContextMenu("Regenerar Partículas de Aire")]
+    public void RegenerateAirParticles()
+    {
+        if (!Application.isPlaying)
+            return;
+            
+        try
+        {
+            int currentAirParticles = 0;
+            if (typeBuffer != null)
+            {
+                int[] types = new int[numParticles];
+                typeBuffer.GetData(types);
+                currentAirParticles = System.Array.FindAll(types, t => t == 1).Length;
+            }
+            
+            int airParticlesToAdd = airConfig.particleCount - currentAirParticles;
+            
+            if (airParticlesToAdd > 0)
+            {
+                Debug.Log($"Regenerando {airParticlesToAdd} partículas de aire para mantener el límite configurado");
+                
+                // Obtener datos actuales
+                float2[] positions = new float2[numParticles];
+                float2[] velocities = new float2[numParticles];
+                float2[] densities = new float2[numParticles];
+                int[] types = new int[numParticles];
+                float[] masses = new float[numParticles];
+                
+                positionBuffer.GetData(positions);
+                velocityBuffer.GetData(velocities);
+                densityBuffer.GetData(densities);
+                typeBuffer.GetData(types);
+                massBuffer.GetData(masses);
+                
+                // Crear nuevos arrays con el tamaño aumentado
+                int newNumParticles = numParticles + airParticlesToAdd;
+                float2[] newPositions = new float2[newNumParticles];
+                float2[] newVelocities = new float2[newNumParticles];
+                float2[] newDensities = new float2[newNumParticles];
+                int[] newTypes = new int[newNumParticles];
+                float[] newMasses = new float[newNumParticles];
+                
+                // Copiar partículas existentes
+                for (int i = 0; i < numParticles; i++)
+                {
+                    newPositions[i] = positions[i];
+                    newVelocities[i] = velocities[i];
+                    newDensities[i] = densities[i];
+                    newTypes[i] = types[i];
+                    newMasses[i] = masses[i];
+                }
+                
+                // Generar nuevas partículas de aire en las regiones de spawn
+                int newParticleIndex = numParticles;
+                var rng = new Unity.Mathematics.Random((uint)Time.frameCount);
+                
+                foreach (var spawnRegion in spawnRegions)
+                {
+                    if (newParticleIndex >= newNumParticles) break;
+                    
+                    int particlesInRegion = Mathf.Min(airParticlesToAdd / Mathf.Max(spawnRegions.Count, 1), 50);
+                    
+                    for (int i = 0; i < particlesInRegion && newParticleIndex < newNumParticles; i++)
+                    {
+                        // Posición aleatoria dentro de la región de spawn
+                        float x = spawnRegion.position.x + (rng.NextFloat() - 0.5f) * spawnRegion.size.x;
+                        float y = spawnRegion.position.y + (rng.NextFloat() - 0.5f) * spawnRegion.size.y;
+                        
+                        newPositions[newParticleIndex] = new float2(x, y);
+                        newVelocities[newParticleIndex] = new float2(airConfig.initialVelocity.x, airConfig.initialVelocity.y);
+                        newDensities[newParticleIndex] = new float2(airConfig.targetDensity, 0);
+                        newTypes[newParticleIndex] = 1; // Tipo aire
+                        newMasses[newParticleIndex] = airConfig.mass;
+                        
+                        newParticleIndex++;
+                    }
+                }
+                
+                // Si no hay regiones de spawn, generar en una región por defecto
+                if (spawnRegions.Count == 0 && newParticleIndex < newNumParticles)
+                {
+                    Vector2 defaultSpawnCentre = new Vector2(0, 20);
+                    Vector2 defaultSpawnSize = new Vector2(10, 5);
+                    
+                    for (int i = newParticleIndex; i < newNumParticles; i++)
+                    {
+                        float x = defaultSpawnCentre.x + (rng.NextFloat() - 0.5f) * defaultSpawnSize.x;
+                        float y = defaultSpawnCentre.y + (rng.NextFloat() - 0.5f) * defaultSpawnSize.y;
+                        
+                        newPositions[i] = new float2(x, y);
+                        newVelocities[i] = new float2(airConfig.initialVelocity.x, airConfig.initialVelocity.y);
+                        newDensities[i] = new float2(airConfig.targetDensity, 0);
+                        newTypes[i] = 1; // Tipo aire
+                        newMasses[i] = airConfig.mass;
+                    }
+                }
+                
+                // Actualizar contadores
+                numAirParticles = airConfig.particleCount;
+                numParticles = newNumParticles;
+                
+                // Crear nuevos buffers
+                var newPositionBuffer = ComputeHelper.CreateStructuredBuffer<float2>(numParticles);
+                var newVelocityBuffer = ComputeHelper.CreateStructuredBuffer<float2>(numParticles);
+                var newDensityBuffer = ComputeHelper.CreateStructuredBuffer<float2>(numParticles);
+                var newTypeBuffer = ComputeHelper.CreateStructuredBuffer<int>(numParticles);
+                var newMassBuffer = ComputeHelper.CreateStructuredBuffer<float>(numParticles);
+                
+                // Llenar los nuevos buffers
+                newPositionBuffer.SetData(newPositions);
+                newVelocityBuffer.SetData(newVelocities);
+                newDensityBuffer.SetData(newDensities);
+                newTypeBuffer.SetData(newTypes);
+                newMassBuffer.SetData(newMasses);
+                
+                // Liberar buffers antiguos
+                positionBuffer.Release();
+                velocityBuffer.Release();
+                densityBuffer.Release();
+                typeBuffer.Release();
+                massBuffer.Release();
+                
+                // Asignar nuevos buffers
+                positionBuffer = newPositionBuffer;
+                velocityBuffer = newVelocityBuffer;
+                densityBuffer = newDensityBuffer;
+                typeBuffer = newTypeBuffer;
+                massBuffer = newMassBuffer;
+                
+                // Actualizar compute shader
+                ComputeHelper.SetBuffer(compute, positionBuffer, "Positions", externalForcesKernel, updatePositionKernel);
+                ComputeHelper.SetBuffer(compute, velocityBuffer, "Velocities", externalForcesKernel, pressureKernel, viscosityKernel, updatePositionKernel);
+                ComputeHelper.SetBuffer(compute, densityBuffer, "Densities", densityKernel, pressureKernel, viscosityKernel);
+                ComputeHelper.SetBuffer(compute, typeBuffer, "ParticleTypes", externalForcesKernel, densityKernel, pressureKernel, viscosityKernel);
+                ComputeHelper.SetBuffer(compute, massBuffer, "ParticleMasses", externalForcesKernel, densityKernel, pressureKernel, viscosityKernel);
+                compute.SetInt("numParticles", numParticles);
+                compute.SetInt("numAirParticles", numAirParticles);
+                
+                // Actualizar display
+                UpdateParticleDisplay();
+                
+                Debug.Log($"Regeneración completada. Total: {numParticles} partículas ({numFluidParticles} fluido, {numAirParticles} aire)");
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Error durante la regeneración: {e.Message}");
+            Debug.LogError($"Stack trace: {e.StackTrace}");
+        }
+    }
+    
+    /// <summary>
+    /// Limpieza segura de partículas de aire fuera de límites (marca como inactivas)
+    /// </summary>
+    [ContextMenu("Limpieza Segura de Partículas de Aire")]
+    public void SafeCleanupAirParticles()
+    {
+        if (!Application.isPlaying || typeBuffer == null || positionBuffer == null)
+            return;
+            
+        try
+        {
+            // Obtener solo tipos y posiciones
+            int[] types = new int[numParticles];
+            float2[] positions = new float2[numParticles];
+            typeBuffer.GetData(types);
+            positionBuffer.GetData(positions);
+            
+            int airParticlesDeactivated = 0;
+            
+            // Marcar partículas de aire fuera de límites como inactivas (tipo -1)
+            for (int i = 0; i < numParticles; i++)
+            {
+                if (types[i] == 1) // Partícula de aire
+                {
+                    if (positions[i].y < airConfig.yMin || positions[i].y > airConfig.yMax)
+                    {
+                        types[i] = -1; // Marcar como inactiva
+                        airParticlesDeactivated++;
+                        
+                        // Mover la partícula muy lejos para que no interfiera
+                        positions[i] = new float2(positions[i].x, airConfig.yMin - 1000f);
+                    }
+                }
+            }
+            
+            if (airParticlesDeactivated > 0)
+            {
+                Debug.Log($"Desactivadas {airParticlesDeactivated} partículas de aire fuera de límites (Y: {airConfig.yMin} a {airConfig.yMax})");
+                
+                // Actualizar solo los buffers necesarios
+                typeBuffer.SetData(types);
+                positionBuffer.SetData(positions);
+                
+                // Actualizar contador de partículas de aire activas
+                numAirParticles -= airParticlesDeactivated;
+                
+                // Actualizar compute shader
+                compute.SetInt("numAirParticles", numAirParticles);
+                
+                // Actualizar display
+                UpdateParticleDisplay();
+                
+                // Reactivar partículas si quedan muy pocas
+                if (numAirParticles < airConfig.particleCount * 0.3f) // Si quedan menos del 30%
+                {
+                    Debug.Log($"Se desactivaron demasiadas partículas de aire. Reactivando...");
+                    ReactivateAirParticles();
+                }
+                
+                Debug.Log($"Limpieza segura completada. Partículas de aire activas: {numAirParticles}");
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Error durante la limpieza segura: {e.Message}");
+            Debug.LogError($"Stack trace: {e.StackTrace}");
+        }
+    }
+    
+    /// <summary>
     /// Agrega una barrera horizontal en la posición Y especificada
     /// </summary>
     /// <param name="yPosition">Posición Y de la barrera</param>
@@ -960,6 +1447,30 @@ public class Simulation2D : MonoBehaviour
                 Vector2 expandedSize = obstacle.size + Vector2.one * obstacleOverlapOffset * 2.0f;
                 Gizmos.DrawWireCube(obstacle.position, expandedSize);
             }
+        }
+        
+        // Draw air bounds if enabled
+        if (airConfig.showAirBounds)
+        {
+            // Calcular el tamaño del área de aire basado en los límites Y y el ancho de la simulación
+            float airAreaWidth = boundsSize.x;
+            float airAreaHeight = airConfig.yMax - airConfig.yMin;
+            Vector2 airAreaCenter = new Vector2(0, (airConfig.yMax + airConfig.yMin) * 0.5f);
+            Vector2 airAreaSize = new Vector2(airAreaWidth, airAreaHeight);
+            
+            // Dibujar el área de aire como un cuadro azul transparente
+            Gizmos.color = new Color(0, 0.5f, 1f, 0.2f); // Azul transparente
+            Gizmos.DrawCube(airAreaCenter, airAreaSize);
+            
+            // Dibujar el borde del área de aire
+            Gizmos.color = new Color(0, 0.5f, 1f, 0.8f); // Azul sólido
+            Gizmos.DrawWireCube(airAreaCenter, airAreaSize);
+            
+            // Dibujar líneas horizontales en los límites Y
+            Gizmos.color = new Color(0, 0.5f, 1f, 0.6f);
+            float halfWidth = airAreaWidth * 0.5f;
+            Gizmos.DrawLine(new Vector3(-halfWidth, airConfig.yMin, 0), new Vector3(halfWidth, airConfig.yMin, 0));
+            Gizmos.DrawLine(new Vector3(-halfWidth, airConfig.yMax, 0), new Vector3(halfWidth, airConfig.yMax, 0));
         }
 
         if (Application.isPlaying)
