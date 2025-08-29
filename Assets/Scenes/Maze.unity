@@ -337,7 +337,7 @@ MonoBehaviour:
   collisionDamping: 0.95
   boundsSize: {x: 42, y: 180}
   fluidConfig:
-    physicsExpanded: 1
+    physicsExpanded: 0
     gravity: -12
     targetDensity: 55
     pressureMultiplier: 500
@@ -348,7 +348,7 @@ MonoBehaviour:
     visualExpanded: 0
     particleScale: 0.25
     airParticlesInvisible: 0
-    spawnExpanded: 1
+    spawnExpanded: 0
     particleCount: 30000
     initialVelocity: {x: 0, y: 0}
     jitterStrength: 0.1
@@ -357,7 +357,7 @@ MonoBehaviour:
     yMax: 1000
     showAirBounds: 0
   airConfig:
-    physicsExpanded: 1
+    physicsExpanded: 0
     gravity: 0
     targetDensity: 15
     pressureMultiplier: 150
@@ -366,10 +366,10 @@ MonoBehaviour:
     mass: 0.01
     compressibility: 15
     visualExpanded: 0
-    particleScale: 0.08
-    airParticlesInvisible: 0
+    particleScale: 0
+    airParticlesInvisible: 1
     spawnExpanded: 1
-    particleCount: 12000
+    particleCount: 1
     initialVelocity: {x: 0, y: 0}
     jitterStrength: 0.05
     optimizationExpanded: 0
@@ -384,52 +384,892 @@ MonoBehaviour:
   airCleanupFrequency: 30
   maxBatchSize: 50
   obstacles:
+  - position: {x: -20, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: 0}
+    size: {x: 2, y: 2}
   - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 0}
-    size: {x: 0, y: 0}
-  - position: {x: 0, y: 50}
-    size: {x: 30, y: 5}
-  spawnRegions: []
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: -20, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: -20}
+    size: {x: 2, y: 2}
+  - position: {x: 20, y: -20}
+    size: {x: 2, y: 2}
+  spawnRegions:
+  - position: {x: -2, y: 20}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: 18}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: 16}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: 14}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: 12}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: 10}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: 8}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: 6}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: 4}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: 0, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: 2}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: 0}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: 4, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: -2}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: -4}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: -6}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: -8}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: -8, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: 16, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: -10}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: -12}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: -14}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: -16}
+    size: {x: 2, y: 2}
+  - position: {x: -18, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: -16, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: -14, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: -12, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: -6, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: -4, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: -2, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: 2, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: 6, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: 8, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: 10, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: 12, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: 14, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: 18, y: -18}
+    size: {x: 2, y: 2}
+  - position: {x: -10, y: -20}
+    size: {x: 2, y: 2}
   displayObstacle: 1
   useMaze: 1
-  obstacleFilePath: maze_4.csv
+  obstacleFilePath: maze_3.csv
   obstacleOverlapOffset: 0.15
   loadObstaclesFromFile: 1
   reloadObstaclesOnStart: 0
